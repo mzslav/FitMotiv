@@ -12,28 +12,35 @@ import useAuth from "@/context/authContext/auth";
 import { useEffect } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "@/firebase/firebaseConfig";
-export default function Index() {
+import { styles as styles } from "../../src/Styles/Index";
+
+export default function IndexScreen() {
+
+    const { user, loading } = useAuth();
+
+      const handleLogout = async () => {
+        await signOut(auth);
+      };
+      useEffect(() => {
+        if (!loading && !user) {
+          router.replace("/auth/login");
+        }
+      }, [loading, user]);
+
+      if (loading) {
+        return <ActivityIndicator size="large" />;
+      }
+
+      if (!user) {
+        return null;
+      }
 
 
-  const handleLogout = async () => {
-    await signOut(auth)
-  }
+  return (
 
-  const { user, loading } = useAuth();
+  <View style={styles.container}>
+  <Button title="Log Out" onPress={handleLogout} />
+  </View>
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.replace("/auth/login");
-    }
-  }, [loading, user]);
-
-  if (loading) {
-    return <ActivityIndicator size="large" />;
-  }
-
-  if (!user) {
-    return null;
-  }
-
-  return <Button title="Log Out" onPress={handleLogout} />;
+  );
 }

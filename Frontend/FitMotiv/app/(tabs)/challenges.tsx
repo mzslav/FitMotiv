@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { useEffect } from 'react';
 
 
-export default function AboutScreen() {
+export default function ChallengesScreen() {
 
   const { user, loading } = useAuth();
 
@@ -35,7 +35,7 @@ export default function AboutScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#25292e',
+    backgroundColor: '#121212',
     justifyContent: 'center',
     alignItems: 'center',
   },

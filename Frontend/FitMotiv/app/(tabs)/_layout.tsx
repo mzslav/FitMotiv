@@ -34,7 +34,7 @@ export default function TabLayout() {
         options={{
           title: "Wallet",
           tabBarIcon: ({ focused }) => <WalletIcon focused={focused} />,
-          header: () => <CustomHeader backButton={true}/>,
+          header: () => <CustomHeader backButton={false} settingsButton={true}/>,
         }}
       />
     </Tabs>
