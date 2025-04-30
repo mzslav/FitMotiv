@@ -1,5 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import { Link, Stack } from 'expo-router';
+import React from 'react';
 
 export default function NotFoundScreen() {
   return (
@@ -26,3 +27,4 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 });
+const AuthContext = React.createContext();
