@@ -76,6 +76,79 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
   },
+  
+  balanceDisplay: {
+    width: width * 0.9,
+    height: height * 0.2,
+    justifyContent: "center",
+    alignContent: "flex-start"
+  },
+
+  containerGradient:{
+    backgroundColor: "#9A5CEE",
+    width: width * 0.9,
+    height: height * 0.2,
+    alignItems: "flex-start", 
+    flexDirection: "column",
+    borderRadius: 20,
+    position: "relative",
+    paddingLeft: 30,
+    paddingTop: 20,
+  },
+  
+  balanceETH: {
+    color: "white",
+    fontSize: 32,
+    fontWeight: "700", 
+    paddingBottom: 5,
+  },
+  balanceUSD: {
+    color: "#C8C8C8",
+    fontSize: 16,
+    fontWeight: "700", 
+
+  },
+  currentBalance: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "700", 
+    marginLeft: 5,
+  },
+  balanceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: 12,
+  },
+  opacityButton: {
+    backgroundColor: "#121212",
+    height: 50,
+    width: 146,
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    borderRadius: 25,
+    borderColor: "#C8C8C8",
+    borderWidth: 1,
+    marginLeft: 10,
+  },
+  buttonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', 
+    alignItems: 'center',
+    paddingTop: 15,
+
+  },
+  DepositButton: {
+    overflow: "hidden",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 6,
+    width: 146, 
+    height: 50, 
+    marginRight: 10, 
+    borderRadius: 25,
+  }
 
 
 });

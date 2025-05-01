@@ -20,6 +20,8 @@ import { styles as styles } from "../../src/Styles/wallet";
 import { LinearGradient } from "expo-linear-gradient";
 import { ethers } from "ethers";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { WalletIcon } from "@/src/Icons/IconsNavBar";
+import { BalanceIcon } from "@/src/Icons/WalletIcons";
 
 export default function WalletScreen() {
   const { user, loading } = useAuth();
@@ -27,7 +29,8 @@ export default function WalletScreen() {
   const [address, setAddress] = useState<string>("");
   const [mnemonic, setMnemonic] = useState<string>("");
   const [loadingCreate, setLoadingCreate] = useState<boolean>(false);
-
+  const [balance, setBalance] = useState("0.012");
+  const [usdBalance, setUsdBalance] = useState("1523");
   useEffect(() => {
     checkAdressData();
   }, [walletExist]);
@@ -48,7 +51,6 @@ export default function WalletScreen() {
     setLoadingCreate(true);
     try {
       const wallet = ethers.Wallet.createRandom();
-      console.log("Wallet generated:", wallet.address);
       setAddress(wallet.address);
       if (!wallet.mnemonic) throw new Error("Can't create seed-phrase");
       setMnemonic(wallet.mnemonic.phrase);
@@ -59,6 +61,10 @@ export default function WalletScreen() {
       setLoadingCreate(false);
     }
   };
+
+  const handleWithdraw = async () => {};
+
+  const handleDeposit = async () => {};
 
   const onConfirm = async () => {
     try {
@@ -163,34 +169,53 @@ export default function WalletScreen() {
     );
   } else {
     return (
-      <View style={styles.container}>
-        <View style={styles.cryptoInfo}>
-          <Text style={styles.label}>Your address</Text>
-          <TouchableOpacity
-            style={styles.newAddressConteiner}
-            onPress={() => {
-              Clipboard.setString(address);
-            }}
+      <View style={[styles.container, { justifyContent: "flex-start" }]}>
+        <TouchableOpacity style={[styles.balanceDisplay]}>
+          <LinearGradient
+            colors={["#6412DF", "#CDA2FB"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            locations={[0, 0.9]}
+            style={styles.containerGradient}
           >
-            <Text style={styles.newAddress}> {address} </Text>
-          </TouchableOpacity>
+            <View style={styles.balanceHeader}>
+              <BalanceIcon />
+              <Text style={styles.currentBalance}>Current balance</Text>
+            </View>
+            <Text style={styles.balanceETH}>{balance} ETH</Text>
+            <Text style={styles.balanceUSD}>= ${usdBalance}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
 
-          <Text style={styles.label}>Your seed-phrase</Text>
+        <View style={styles.buttonsRow}>
           <TouchableOpacity
-            style={styles.newAddressConteiner}
-            onPress={() => {
-              Clipboard.setString(mnemonic);
-            }}
+            onPress={handleDeposit}
+            style={styles.DepositButton}
           >
-            <Text style={styles.InfoText}>
-              {mnemonic.split(" ").map((word, index) => (
-                <Text style={styles.newAddress} key={index}>
-                  {word}{" "}
-                </Text>
-              ))}
-            </Text>
+            <LinearGradient
+              colors={["#6412DF", "#CDA2FB"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              locations={[0, 0.9]}
+              style={[styles.buttonGradient]}
+            >
+              <Text style={[styles.buttonGradientText, { marginRight: 154 }]}>
+                Deposit
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleWithdraw}
+            style={styles.opacityButton}
+          >
+            <Text style={styles.buttonGradientText}>Withdraw</Text>
           </TouchableOpacity>
         </View>
+
+        <View>
+          <Text style={[styles.balanceUSD, {fontSize: 14}]}>Transactions History</Text>
+        </View>
+
       </View>
     );
   }
