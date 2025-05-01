@@ -10,7 +10,6 @@ export default function useAuth() {
   const storeToken = async (token: string) => {
     try {
       await AsyncStorage.setItem("UserToken", token);
-      console.log("Token saved to AsyncStorage");
     } catch (e) {
       console.log("Error saving token:", e);
     }
@@ -19,7 +18,6 @@ export default function useAuth() {
   const removeToken = async () => {
     try {
       await AsyncStorage.removeItem("UserToken");
-      console.log("Token removed from AsyncStorage");
     } catch (e) {
       console.log("Error removing token:", e);
     }
