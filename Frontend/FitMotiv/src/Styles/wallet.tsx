@@ -148,6 +148,34 @@ export const styles = StyleSheet.create({
     height: 50, 
     marginRight: 10, 
     borderRadius: 25,
+  },
+  historyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  transactionsContainer: {
+    width: width * 0.9,
+    backgroundColor: '#1e1e1e',
+    borderRadius: 15,
+    maxHeight: 300, 
+    
+  },  
+  transactionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+
+  transactionItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'black',
+    paddingHorizontal: 25,
+  },
+  transactionItemText: {
+    color: "white",
+    fontWeight: 700,
   }
 
 

@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
+  ScrollView,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { Link, router } from "expo-router";
@@ -44,7 +45,7 @@ export default function WalletScreen() {
         setMnemonic(mnemonic);
         setWalletExist("true");
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const handelCreateWallet = async () => {
@@ -62,9 +63,9 @@ export default function WalletScreen() {
     }
   };
 
-  const handleWithdraw = async () => {};
+  const handleWithdraw = async () => { };
 
-  const handleDeposit = async () => {};
+  const handleDeposit = async () => { };
 
   const onConfirm = async () => {
     try {
@@ -212,10 +213,20 @@ export default function WalletScreen() {
           </TouchableOpacity>
         </View>
 
-        <View>
-          <Text style={[styles.balanceUSD, {fontSize: 14}]}>Transactions History</Text>
-        </View>
+        <View style={styles.historyContainer}>
+          <Text style={[styles.balanceUSD, { fontSize: 14, alignSelf: "flex-start", marginLeft: 25, paddingBottom: 10 }]}>
+            Transactions History
+          </Text>
+          <ScrollView style={styles.transactionsContainer}>
+          <TouchableOpacity style={styles.transactionItem}>
+            <View style={styles.transactionRow}>
+              <Text style={styles.transactionItemText}>Transaction 1:</Text>
+              <Text style={styles.transactionItemText}>Sent $50 to John</Text>
+            </View>
+          </TouchableOpacity>
+          </ScrollView>
 
+        </View>
       </View>
     );
   }
