@@ -176,7 +176,62 @@ export const styles = StyleSheet.create({
   transactionItemText: {
     color: "white",
     fontWeight: 700,
-  }
+    fontSize: 14,
+    fontFamily: "inter",
+  },
+  transactionItemTextNegative: {
+    color: "#D23538",
+    fontWeight: 700,
+    fontSize: 14,
+    fontFamily: "inter",
+  },
+  transactionItemTextPositive: {
+    color: "#2BC4AD",
+    fontWeight: 700,
+    fontSize: 14,
+    fontFamily: "inter",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.79)',
+    justifyContent: "flex-start",
+    alignItems: 'center',
+   
+  },
+  modalText: {
+    color: "white",
+    fontWeight: 700,
+    fontSize: 24,
+    fontFamily: "inter",
+  },
+  containerGradientInfo: {
+    backgroundColor: "#9A5CEE",
+    width: width * 0.9,
+    height: height * 0.1,
+    alignItems: "center", 
+    borderRadius: 20,
+    marginTop: 60,
+    justifyContent: "center",
+  },
+  modalDataContainer: {
+    width: width * 0.9,
+    backgroundColor: '#1e1e1e',
+    borderRadius: 15,
+    height: 380,
+    marginTop: 20,
+    justifyContent: "flex-start",
+    alignItems: "center",
 
+  },  
+  titleRow: {
+    flexDirection: 'row',
+    fontSize: 24,
+  },
+  titleText: {
+    color: "white",
+    fontSize: 14,
+    marginLeft: 5,
+    fontWeight: 700,
+  },
 
 });
