@@ -236,7 +236,7 @@ export default function WalletScreen() {
               <Text style={styles.currentBalance}>Current balance</Text>
             </View>
             <Text style={styles.balanceETH}>{balance} ETH</Text>
-            <Text style={styles.balanceUSD}>= ${usdBalance}</Text>
+            <Text style={styles.balanceUSD}>≈ ${usdBalance}</Text>
           </LinearGradient>
         </TouchableOpacity>
 

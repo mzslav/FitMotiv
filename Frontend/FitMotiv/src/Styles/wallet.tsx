@@ -39,7 +39,7 @@ export const styles = StyleSheet.create({
   InfoText:{
     marginHorizontal: 50,
     textAlign: "center",
-    fontWeight: "bold",
+    fontWeight: 700,
     fontFamily: "inter",
     color: "#747474",
     fontSize: 10,
