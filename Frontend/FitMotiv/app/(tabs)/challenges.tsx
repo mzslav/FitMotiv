@@ -105,7 +105,10 @@ export default function ChallengesScreen() {
         data={challenges}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => console.log("Tapped", item.id)}>
+          <TouchableOpacity onPress={() => router.push({
+            pathname: '/challengeDetail/[id]',
+            params: {id: item.id.toString()}
+          })}>
             <View style={styles.exersiceTable}>
               <View style={{ marginRight: 50, marginLeft: 20 }}>
                 <View style={{ marginBottom: 8, marginTop: 10 }}>
