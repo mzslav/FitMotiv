@@ -45,13 +45,13 @@ export default function ChallengesScreen() {
     },
     {
       id: 3,
-      ChallengeTitle: "Suicide",
+      ChallengeTitle: "Plank 1...",
       ChallengeStatus: "Completed",
       Price: 20,
     },
     {
       id: 4,
-      ChallengeTitle: "Drink",
+      ChallengeTitle: "10 squa...",
       ChallengeStatus: "Completed",
       Price: 20,
     },

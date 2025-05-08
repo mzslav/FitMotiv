@@ -29,6 +29,14 @@ export default function RootLayout() {
             header: () => <CustomHeader backButton={true} />,
           }}
         />
+
+        <Stack.Screen
+          name="createExercise"
+          options={{
+            headerShown: true,
+            header: () => <CustomHeader backButton={true} />,
+          }}
+        />
       </Stack>
     </>
   );
