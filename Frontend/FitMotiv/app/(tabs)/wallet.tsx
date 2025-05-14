@@ -24,6 +24,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { ethers } from "ethers";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { WalletIcon } from "@/src/Icons/IconsNavBar";
+import { fetchUsdtToEthRate } from "@/context/getPrice/getETHPrice";
 import {
   BalanceIcon,
   RecipientIcon,
@@ -41,13 +42,14 @@ type Transaction = {
 export default function WalletScreen() {
   const { user, loading } = useAuth();
   const [walletExist, setWalletExist] = useState("false");
+  const [rate, setRate] = useState<number | null>(null);
+  const [error, setError] = useState("");
   const [address, setAddress] = useState<string>("");
   const [mnemonic, setMnemonic] = useState<string>("");
   const [loadingCreate, setLoadingCreate] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalDepositVisible, setModalDepositVisible] = useState(false);
   const [balance, setBalance] = useState("0.012");
-  const [usdBalance, setUsdBalance] = useState("1523");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [addressToWithdraw, setAddressToWithdraw] = useState<string>("");
   const [amountToWithdraw, setAmountToWithdraw] = useState<number | null>(null);
@@ -68,8 +70,18 @@ export default function WalletScreen() {
     { id: "9", type: "Challenge Completed", amount: 10 },
   ];
 
+  const getRate = async () => {
+    try {
+      const rate = await fetchUsdtToEthRate();
+      setRate(rate);
+    } catch (err) {
+      setError("Error while get data");
+    }
+  }
+
   useEffect(() => {
     setTransactions(mockTransactions);
+    getRate()
   }, []);
 
   const checkAdressData = async () => {
@@ -236,7 +248,13 @@ export default function WalletScreen() {
               <Text style={styles.currentBalance}>Current balance</Text>
             </View>
             <Text style={styles.balanceETH}>{balance} ETH</Text>
-            <Text style={styles.balanceUSD}>≈ ${usdBalance}</Text>
+              {rate !== null ? (
+                <Text style={styles.balanceUSD}>≈ ${(parseFloat(balance) / rate).toFixed(2)}</Text>
+              ) : (
+                <Text style={styles.balanceETH}>Loading...</Text>
+              )}
+
+           
           </LinearGradient>
         </TouchableOpacity>
 
@@ -317,7 +335,7 @@ export default function WalletScreen() {
                         placeholderTextColor="#747474"
                         value={
                           amountToWithdraw !== null
-                            ? addressToWithdraw.toString()
+                            ? amountToWithdraw.toString()
                             : ""
                         }
                         onChangeText={(text) => {
@@ -338,7 +356,12 @@ export default function WalletScreen() {
                       { color: "#747474", marginTop: 5 },
                     ]}
                   >
-                    ~${usdBalance}
+                    {rate !== null && amountToWithdraw !== null ? (
+                    `≈ ${(amountToWithdraw / rate).toFixed(3)}`
+                  ) : (
+                   ``
+                  )}
+
                   </Text>
                 </View>
                 <View style={[styles.titleRow, { marginTop: 10 }]}>
