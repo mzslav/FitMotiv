@@ -6,135 +6,89 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#121212',
+    justifyContent: "flex-start",
+    alignItems: "center"
   },
-  header: {
-    paddingTop: 10,
-    paddingHorizontal: 15,
-    paddingBottom: 5,
-  },
-  cameraText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#939393',
-  },
-  cameraContainer: {
-    flex: 1,
-    backgroundColor: '#000',
-    borderRadius: 20,
-    overflow: 'hidden',
-    margin: 10,
-    position: 'relative',
-  },
-  camera: {
-    flex: 1,
-    backgroundColor: '#F8F5F2', 
-  },
-  timerContainer: {
-    position: 'absolute',
-    top: 10,
-    right: 15,
-    zIndex: 10,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    borderRadius: 5,
-    padding: 5,
-  },
-  timerText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  exerciseControlsContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#000',
-    padding: 15,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-  },
-  exerciseRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  timeContainer: {
+    marginTop: 40,
     marginBottom: 10,
+    alignSelf: "stretch"
   },
-  exerciseIconContainer: {
-    backgroundColor: '#333',
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  exerciseIconText: {
-    fontSize: 20,
-  },
-  exerciseInfoContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  exerciseTitle: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  exercisePercentage: {
-    color: 'white',
+  timeLeft: {
+    fontWeight: 700,
     fontSize: 14,
+    color: "white",
+    alignSelf: "flex-end",
+    paddingHorizontal: 20,
   },
-  progressBar: {
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#333',
-    marginBottom: 20,
+  buttonWrapper: {
+    width: "100%",
+    alignItems: "center",
+    paddingBottom: 5,
+    paddingTop: 5,
   },
-  buttonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  buttonGradient: {
+    backgroundColor: "#9A5CEE",
+    height: height * 0.06,
+    width: width * 0.8,
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    borderRadius: 25,
+    position: "relative",
   },
-  cancelButton: {
-    borderWidth: 1,
-    borderColor: '#444',
-    borderRadius: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    width: '45%',
-    alignItems: 'center',
+  buttonGradientText: {
+    justifyContent: "center",
+    textAlign: "center",
+    fontSize: 20,
+    color: "#C8C8C8",
+    fontWeight: "bold",
+    fontFamily: "inter",
   },
-  cancelButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+  buttonContainer: {
+    borderRadius: 25,
+    overflow: "hidden",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 6,
   },
-  finishedButton: {
-    backgroundColor: '#9A5CEE',
-    borderRadius: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    width: '45%',
-    alignItems: 'center',
+  procent: {
+    color: "#C8C8C8",
+    fontSize: 14,
+    fontWeight: 700,
   },
-  finishedButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+  ExerciseTitle: {
+    color: "white",
+    fontSize: 24,
+    fontFamily: "inter",
+    fontWeight: 700,
   },
-  text: {
-    color: 'white',
-    textAlign: 'center',
-    margin: 20,
+
+    backRoundIconExercise: {
+    backgroundColor: "#1E1E1E",
+    borderRadius: 15,
+    width: 70,
+    height: 70,
+    marginRight: 5,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  permissionButton: {
-    backgroundColor: '#9A5CEE',
-    borderRadius: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    marginHorizontal: 50,
-    alignItems: 'center',
+  ExerciseRow: {
+    flexDirection: "row",
+    alignSelf: "stretch",
+    alignItems: "center",
+    marginBottom: 10,
+    justifyContent: "space-between",
   },
-  permissionButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  }
+  statExercise: {
+    width: width * 0.9,
+    marginTop: 10,
+  },
+  webViewContainer: {
+    width: width * 0.9,
+    height: height * 0.75
+  },
+  
+  
 })

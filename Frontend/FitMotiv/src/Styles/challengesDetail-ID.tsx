@@ -71,7 +71,7 @@ export const styles = StyleSheet.create({
     borderRadius: 15,
     width: 70,
     height: 70,
-    marginRight: 10,
+    marginRight: 5,
     alignItems: "center",
     justifyContent: "center",
   },
