@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="root">
+        <div class="camera-container">
+            <div class="permission-error" id="permissionError" style="display: none;">
+               Camera access is denied. Please grant permission to configure devices.
+            </div>
+
+            <video
+                id="cameraVideo"
+                class="camera-video"
+                autoplay
+                playsinline
+                muted
+                width="640"
+                height="480"
+            ></video>
+
+            <canvas id="output_canvas" class="output-canvas"></canvas>
+            <div id="counter" style="position: absolute; top: 10px; left: 10px; color: white; font-size: 24px; z-index: 10;">Squats: 0</div>
+        </div>
+
+        <div class="buttonRow">
+            <label class="toggle">
+                <input
+                    type="checkbox"
+                    id="cameraToggle"
+                />
+                <span class="slider"></span>
+                <span class="toggleLabel" id="toggleLabel">Off</span>
+            </label>
+
+            <button class="buttonCameraSwitch" id="switchCameraBtn">
+                Switch
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/pose.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
