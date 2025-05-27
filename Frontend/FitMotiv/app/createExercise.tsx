@@ -73,7 +73,7 @@ export default function CreateExerciseScreen() {
   const fetchUsdtToEthRate = async () => {
     try {
       const response = await fetch(
-        'https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=eth'
+        `${process.env.EXPO_PUBLIC_GET_RATE}`
       );
       const data = await response.json();
       setRate(data.tether.eth);

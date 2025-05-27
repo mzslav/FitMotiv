@@ -22,6 +22,9 @@ import { BellIcon, TrophyIcon } from "@/src/Icons/indexIcons";
 import { TotalIcon } from "@/src/Icons/IconTotal";
 import { fetchUsdtToEthRate } from "@/context/getPrice/getETHPrice";
 
+import { getBalance } from "@/Web3Module/getBalance";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 type TransactionCreated = {
   id: string;
   recepeintAddress: string;
@@ -46,7 +49,7 @@ export default function IndexScreen() {
   const [rate, setRate] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [showStats, setShowStats] = useState<number>(0);
-  const [currentBalance, setCurrentBalance] = useState<number>(0.15);
+  const [currentBalance, setCurrentBalance] = useState<string>('0');
   const [expectedMoney, setExpectedMoney] = useState<number>(0);
   const [queueChallenges, setQueueChallenges] = useState<QueueChallenges[]>([]);
   const [createdTransactions, setCreatedTransactions] = useState<
@@ -139,7 +142,7 @@ export default function IndexScreen() {
       return sum + amount.amount;
     }, 0);
 
-    return total;
+    return  total;
   };
 
   useEffect(() => {
@@ -152,9 +155,31 @@ export default function IndexScreen() {
     setCreatedTransactions(mockData);
     setAcceptedTransactions(mockData2);
     setQueueChallenges(amountData);
-    setExpectedMoney(getExpectedTotal);
     getRate();
   }, []);
+
+  useEffect(() => {
+  const total = getExpectedTotal();
+  setExpectedMoney(total);
+  }, [queueChallenges]);
+
+  useEffect(() => {
+    const get = async () => {
+      try {
+        const mnemonic = await AsyncStorage.getItem("Seed-Phrase");
+        const address = await AsyncStorage.getItem("Wallet-Address");
+
+        if (address !== null && mnemonic !== null) {
+            const data = await getBalance(address)
+            setCurrentBalance(data)
+        } else {
+          setCurrentBalance('No connected wallet')
+        }
+      } catch (e) {}
+    }
+
+    get()
+  }, [])
 
   if (loading) {
     return <ActivityIndicator size="large" />;
@@ -190,7 +215,7 @@ export default function IndexScreen() {
               <View style={styles.balanceRow}>
                 {rate !== null ? (
                   <Text style={styles.balanceETH}>
-                    ${(currentBalance / rate).toFixed(2)}
+                    ${(parseFloat(currentBalance) / rate).toFixed(2)}
                   </Text>
                 ) : (
                   <Text style={styles.balanceETH}>Loading...</Text>

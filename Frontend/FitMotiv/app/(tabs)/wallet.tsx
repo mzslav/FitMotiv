@@ -10,6 +10,8 @@ import {
   ScrollView,
   Modal,
   TextInput,
+  RefreshControl,
+  Dimensions,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { Link, router } from "expo-router";
@@ -33,6 +35,8 @@ import {
   BigRecipientIcon,
 } from "@/src/Icons/WalletIcons";
 
+import { getBalance } from "../../Web3Module/getBalance";
+
 type Transaction = {
   id: string;
   type: string;
@@ -40,8 +44,11 @@ type Transaction = {
 };
 
 export default function WalletScreen() {
+  const { width, height } = Dimensions.get("window");
+
   const currentUser = auth.currentUser;
   const { user, loading } = useAuth();
+  const [refreshing, setRefreshing] = useState(false);
   const [walletExist, setWalletExist] = useState("false");
   const [rate, setRate] = useState<number | null>(null);
   const [error, setError] = useState("");
@@ -50,7 +57,7 @@ export default function WalletScreen() {
   const [loadingCreate, setLoadingCreate] = useState<boolean>(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalDepositVisible, setModalDepositVisible] = useState(false);
-  const [balance, setBalance] = useState("0.012");
+  const [balance, setBalance] = useState("0.0");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [addressToWithdraw, setAddressToWithdraw] = useState<string>("");
   const [amountToWithdraw, setAmountToWithdraw] = useState<number | null>(null);
@@ -74,6 +81,24 @@ export default function WalletScreen() {
     { id: "8", type: "Deposit", amount: 0.0015 },
     { id: "9", type: "Challenge Completed", amount: 10 },
   ];
+
+  const fetchBalance = async () => {
+    if (walletExist === "true" && address) {
+      try {
+        const balance = await getBalance(address);
+        setBalance(balance);
+      } catch (error) {
+        console.error("Error while fetchBalance:", error);
+      }
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+
+    await fetchBalance();
+    setRefreshing(false);
+  };
 
   const getRate = async () => {
     try {
@@ -106,6 +131,10 @@ export default function WalletScreen() {
       } catch (e) {}
     }
   };
+
+  useEffect(() => {
+    fetchBalance();
+  }, [address, walletExist]);
 
   const handelCreateWallet = async () => {
     setLoadingCreate(true);
@@ -338,28 +367,36 @@ export default function WalletScreen() {
   } else {
     return (
       <View style={[styles.container, { justifyContent: "flex-start" }]}>
-        <TouchableOpacity style={[styles.balanceDisplay]}>
-          <LinearGradient
-            colors={["#6412DF", "#CDA2FB"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            locations={[0, 0.9]}
-            style={styles.containerGradient}
-          >
-            <View style={styles.balanceHeader}>
-              <BalanceIcon />
-              <Text style={styles.currentBalance}>Current balance</Text>
-            </View>
-            <Text style={styles.balanceETH}>{balance} ETH</Text>
-            {rate !== null ? (
-              <Text style={styles.balanceUSD}>
-                ≈ ${(parseFloat(balance) / rate).toFixed(2)}
-              </Text>
-            ) : (
-              <Text style={styles.balanceETH}>Loading...</Text>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
+        <ScrollView
+          style={{ maxHeight: height * 0.2 }}
+          contentContainerStyle={{ alignItems: "center" }}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          <TouchableOpacity style={[styles.balanceDisplay]}>
+            <LinearGradient
+              colors={["#6412DF", "#CDA2FB"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              locations={[0, 0.9]}
+              style={styles.containerGradient}
+            >
+              <View style={styles.balanceHeader}>
+                <BalanceIcon />
+                <Text style={styles.currentBalance}>Current balance</Text>
+              </View>
+              <Text style={styles.balanceETH}>{balance} ETH</Text>
+              {rate !== null ? (
+                <Text style={styles.balanceUSD}>
+                  ≈ ${(parseFloat(balance) / rate).toFixed(2)}
+                </Text>
+              ) : (
+                <Text style={styles.balanceETH}>Loading...</Text>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </ScrollView>
 
         <View style={styles.buttonsRow}>
           <TouchableOpacity
