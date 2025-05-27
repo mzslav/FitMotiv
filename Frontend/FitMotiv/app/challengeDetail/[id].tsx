@@ -4,7 +4,7 @@ import { styles as styles } from "../../src/Styles/challengesDetail-ID";
 import { ClockIcon } from "@/src/Icons/challengeDetailIcons";
 import { RecipientIcon } from "@/src/Icons/WalletIcons";
 import { SquatIcon, PlankIcon, PushUpsIc } from "@/src/Icons/challengeDetailIcons";
-import { ProgressBar } from "react-native-paper";
+import { Button, ProgressBar } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 

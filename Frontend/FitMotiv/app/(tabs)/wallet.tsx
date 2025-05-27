@@ -21,7 +21,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/firebase/firebaseConfig";
 import { styles as styles } from "../../src/Styles/wallet";
 import { LinearGradient } from "expo-linear-gradient";
-import { ethers } from "ethers";
+import { ethers, HDNodeWallet } from "ethers";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { WalletIcon } from "@/src/Icons/IconsNavBar";
 import { fetchUsdtToEthRate } from "@/context/getPrice/getETHPrice";
@@ -40,6 +40,7 @@ type Transaction = {
 };
 
 export default function WalletScreen() {
+  const currentUser = auth.currentUser;
   const { user, loading } = useAuth();
   const [walletExist, setWalletExist] = useState("false");
   const [rate, setRate] = useState<number | null>(null);
@@ -53,6 +54,10 @@ export default function WalletScreen() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [addressToWithdraw, setAddressToWithdraw] = useState<string>("");
   const [amountToWithdraw, setAmountToWithdraw] = useState<number | null>(null);
+
+  const [mnemonicInput, setMnemonicInput] = useState<string>("");
+
+  const apiPort = process.env.EXPO_PUBLIC_SERVER_HOST;
 
   useEffect(() => {
     checkAdressData();
@@ -77,23 +82,29 @@ export default function WalletScreen() {
     } catch (err) {
       setError("Error while get data");
     }
-  }
+  };
 
   useEffect(() => {
     setTransactions(mockTransactions);
-    getRate()
+    getRate();
   }, []);
 
   const checkAdressData = async () => {
-    try {
-      const mnemonic = await AsyncStorage.getItem("Seed-Phrase");
-      const address = await AsyncStorage.getItem("Wallet-Address");
-      if (address !== null && mnemonic !== null) {
-        setAddress(address);
-        setMnemonic(mnemonic);
-        setWalletExist("true");
-      }
-    } catch (e) {}
+    if (walletExist !== "true") {
+      try {
+        const mnemonic = await AsyncStorage.getItem("Seed-Phrase");
+        const address = await AsyncStorage.getItem("Wallet-Address");
+
+        if (address !== null && mnemonic !== null) {
+          setAddress(address);
+          setMnemonic(mnemonic);
+          setWalletExist("true");
+        } else if (walletExist == "onConfirm") {
+        } else {
+          fetchWalletAddress();
+        }
+      } catch (e) {}
+    }
   };
 
   const handelCreateWallet = async () => {
@@ -108,6 +119,19 @@ export default function WalletScreen() {
       console.error("Error in handelCreateWallet:", e);
     } finally {
       setLoadingCreate(false);
+    }
+  };
+
+  const handleLoginWithMnemonic = async (mnemonicPhrase: string) => {
+    try {
+      const wallet = HDNodeWallet.fromPhrase(mnemonicPhrase.trim());
+      setMnemonic(wallet.mnemonic?.phrase || "");
+      await AsyncStorage.setItem("Seed-Phrase", mnemonicPhrase);
+      Alert.alert("Seed-Phrase saved to AsyncStorage");
+      setWalletExist("true");
+    } catch (e) {
+      console.error("Error logging in via seed phrase:", e);
+      alert("Invalid or incorrect seed phrase");
     }
   };
 
@@ -131,10 +155,62 @@ export default function WalletScreen() {
     setModalDepositVisible(true);
   };
 
+  const fetchWalletAddress = async () => {
+    if (!currentUser) {
+      console.log("No user is signed in");
+      return;
+    }
+    const token = await currentUser.getIdToken();
+
+    let response = await fetch(`${apiPort}/profile/getAddress`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      alert("HTTP Error " + response.status);
+    }
+
+    const data = await response.json();
+    const addressData = data.address;
+    if (addressData !== null) {
+      await AsyncStorage.setItem("Wallet-Address", addressData);
+      setAddress(addressData);
+      setWalletExist("loggedIn");
+      Alert.alert("Address saved to AsyncStorage");
+    } else {
+      setWalletExist("false");
+    }
+  };
+
+  const saveWalletAddress = async () => {
+    if (!currentUser) {
+      console.log("No user is signed in");
+      return;
+    }
+    const token = await currentUser.getIdToken();
+
+    let response = await fetch(`${apiPort}/profile/createWallet`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ address: address }),
+    });
+
+    if (!response.ok) {
+      alert("HTTP Error " + response.status);
+    }
+  };
+
   const onConfirm = async () => {
     try {
       await AsyncStorage.setItem("Seed-Phrase", mnemonic);
       await AsyncStorage.setItem("Wallet-Address", address);
+      saveWalletAddress();
       setWalletExist("true");
       Alert.alert("Seed-Phrase and Address saved to AsyncStorage");
     } catch (e) {
@@ -232,6 +308,33 @@ export default function WalletScreen() {
         </TouchableOpacity>
       </View>
     );
+  } else if (walletExist == "loggedIn") {
+    return (
+      <View style={[styles.container, { justifyContent: "flex-start" }]}>
+        <TextInput
+          placeholder="Enter your mnemonic"
+          style={styles.newAddress}
+          value={mnemonicInput}
+          onChangeText={setMnemonicInput}
+          placeholderTextColor="#747474"
+        />
+
+        <TouchableOpacity
+          onPress={() => handleLoginWithMnemonic(mnemonicInput)}
+          style={styles.buttonContainer}
+        >
+          <LinearGradient
+            colors={["#6412DF", "#CDA2FB"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            locations={[0, 0.9]}
+            style={styles.buttonGradient}
+          >
+            <Text style={styles.buttonGradientText}>Confirm</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    );
   } else {
     return (
       <View style={[styles.container, { justifyContent: "flex-start" }]}>
@@ -248,13 +351,13 @@ export default function WalletScreen() {
               <Text style={styles.currentBalance}>Current balance</Text>
             </View>
             <Text style={styles.balanceETH}>{balance} ETH</Text>
-              {rate !== null ? (
-                <Text style={styles.balanceUSD}>≈ ${(parseFloat(balance) / rate).toFixed(2)}</Text>
-              ) : (
-                <Text style={styles.balanceETH}>Loading...</Text>
-              )}
-
-           
+            {rate !== null ? (
+              <Text style={styles.balanceUSD}>
+                ≈ ${(parseFloat(balance) / rate).toFixed(2)}
+              </Text>
+            ) : (
+              <Text style={styles.balanceETH}>Loading...</Text>
+            )}
           </LinearGradient>
         </TouchableOpacity>
 
@@ -356,12 +459,9 @@ export default function WalletScreen() {
                       { color: "#747474", marginTop: 5 },
                     ]}
                   >
-                    {rate !== null && amountToWithdraw !== null ? (
-                    `≈ ${(amountToWithdraw / rate).toFixed(3)}`
-                  ) : (
-                   ``
-                  )}
-
+                    {rate !== null && amountToWithdraw !== null
+                      ? `≈ ${(amountToWithdraw / rate).toFixed(3)}`
+                      : ``}
                   </Text>
                 </View>
                 <View style={[styles.titleRow, { marginTop: 10 }]}>

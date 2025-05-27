@@ -24,10 +24,33 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordRe, setShowPasswordRe] = useState(false);
 
+  const apiPort = process.env.EXPO_PUBLIC_SERVER_HOST;
+
   function validateEmail(email: string) {
     const re = /\S+@\S+\.\S+/;
     return re.test(email);
   }
+
+  const saveData = async () => {
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      console.log("No user is signed in");
+      return;
+    }
+    const token = await currentUser.getIdToken();
+    let response = await fetch(`${apiPort}/profile/login`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      alert("HTTP Error " + response.status);
+    }
+  };
 
   const handleRegister = async () => {
     if (!email || !password || !passwordRe) {
@@ -48,6 +71,7 @@ export default function RegisterScreen() {
 
     try {
       await createUserWithEmailAndPassword(auth, email, password);
+      saveData();
       router.push("/(tabs)");
     } catch (err: any) {
       console.log(`Error: ${err}`);

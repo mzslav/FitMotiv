@@ -33,7 +33,7 @@ export default function ExerciseScreen() {
   const { user, loading } = useAuth();
   const [time, setTime] = useState(0);
 
-  const CAMERA_TEST_URL = 'https://phenomenal-pony-6a5359.netlify.app/'; 
+  const CAMERA_TEST_URL = "https://helpful-peony-5cfc5d.netlify.app/"
 
   // const counter = () => {
   //   setTimeout(() => {
