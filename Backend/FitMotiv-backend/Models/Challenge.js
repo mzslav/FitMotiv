@@ -14,8 +14,7 @@ const exerciseSchema = new mongoose.Schema({
 const challengeSchema = new mongoose.Schema(
   {
     creator: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User', 
+    type: String,  
     required: true 
     },
     recepient: {

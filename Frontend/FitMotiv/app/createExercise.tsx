@@ -31,19 +31,24 @@ import {
 } from "@/src/Icons/createChallengeIcons";
 import { TextInput } from "react-native-paper";
 import { RecepientIcon } from "@/src/Icons/createChallengeIcons";
+import { getBalance } from "@/Web3Module/getBalance";
+import { getWalletData } from "@/context/LocalData/getFromAsync";
 
 export default function CreateExerciseScreen() {
-  const isValidHexAddress = (address: string) =>
+  const currentUser = auth.currentUser;
+
+  const isValidHEXAddress = (address: string) =>
     /^0x[a-fA-F0-9]{40}$/.test(address);
+
   const { width, height } = Dimensions.get("window");
 
   const [title, setTitle] = useState<string>("");
-  const [recepient, setRecepient] = useState<string>("");
+  const [recepientAddress, setRecepientAddress] = useState<string>("");
   const [duration, setDuration] = useState(new Date());
   const [inputValue, setInputValue] = useState<string>("");
 
   const [challengeBet, setChallengeBet] = useState<string>('0');
-  const [currentUserBalance, setCurrentUserBalance] = useState<number>(0.25)
+  const [currentUserBalance, setCurrentUserBalance] = useState<number>(0)
   const [rate, setRate] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,6 +60,7 @@ export default function CreateExerciseScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [currentExerciseId, setCurrentExerciseId] = useState<number | null>(null);
   const [isPressed, setIsPressed] = useState(false);
+  const [mode, setMode] = useState<string>('per')
 
   const [selectedTime, setSelectedTime] = useState<number>()
 
@@ -85,6 +91,20 @@ export default function CreateExerciseScreen() {
 
   const { user, loading } = useAuth();
 
+
+  useEffect(() => {
+    const getWallet = async () => {
+      const wallet = await getWalletData();
+
+      if (wallet) {
+        const data = await getBalance(wallet.address)
+        setCurrentUserBalance(+data)
+      }
+    }
+
+    getWallet()
+  }, [])
+
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/auth/login");
@@ -101,25 +121,97 @@ export default function CreateExerciseScreen() {
   }
 
   const onPerDay = () => {
-    Alert.alert("OnPerDay");
+    Alert.alert("On Per Day");
+    setMode('per')
   };
 
   const onTotalToComplete = () => {
     Alert.alert("on Total To cpmplete");
+    setMode('total')
   };
 
-  const onSendChallenge = () => {
-    if (!isValidHexAddress(recepient)) {
-      Alert.alert("Error", "Invalid recepient address");
-    }
+  const onSendChallenge = async () => {
+  if (!isValidHEXAddress(recepientAddress)) {
+    Alert.alert("Error", "Invalid recepient address");
+    return;
+  }
 
-    if (parseFloat(challengeBet) > currentUserBalance) {
-      Alert.alert("Error", "Challenge Bet must be <= your balance!")
-    }
+  if (parseFloat(challengeBet) > currentUserBalance) {
+    Alert.alert("Error", "Challenge Bet must be <= your balance!");
+    return;
+  }
 
+  if (!title) {
+    Alert.alert("Error", "Invalid title");
+    return;
+  }
 
+  if (!duration) {
+    Alert.alert("Error", "Invalid duration");
+    return;
+  }
 
+  if (!challengeBet || isNaN(parseFloat(challengeBet))) {
+    Alert.alert("Error", "Invalid challengeBet");
+    return;
+  }
+
+  const formattedExercises = Object.entries(selectedExercises)
+    .filter(([rowIndex, exerciseId]) => exerciseId !== null && repetitions[exerciseId!])
+    .map(([rowIndex, exerciseId]) => {
+      const exercise = exercises.find(e => e.id === exerciseId!);
+      return {
+        type: exercise?.type,
+        repetitions: Number(repetitions[exerciseId!]),
+      };
+    });
+
+  if (formattedExercises.length === 0) {
+    Alert.alert("Error", "At least one exercise must be selected.");
+    return;
+  }
+
+  const challengePayload = {
+    recepient: recepientAddress,
+    title,
+    mode: mode, 
+    exercises: formattedExercises,
+    duration: duration.getTime(),
+    bet: parseFloat(challengeBet),
+    message,
   };
+
+    if (!currentUser) {
+      console.log("No user is signed in");
+      return;
+    }
+    const token = await currentUser.getIdToken();
+
+  try {
+    const response = await fetch(`${process.env.EXPO_PUBLIC_SERVER_HOST}/challenge/create`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(challengePayload),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      Alert.alert("Error", result.message || "Something went wrong");
+    } else {
+      Alert.alert("Success", "Challenge created successfully");
+      router.push('/(tabs)')
+    }
+  } catch (err) {
+    console.error("Challenge creation failed", err);
+    Alert.alert("Error", "Failed to create challenge");
+  }
+
+};
+
 
   const handlePress = (index: number, exerciseId: number) => {
     setIsPressed(!isPressed);
@@ -187,9 +279,9 @@ export default function CreateExerciseScreen() {
                 underlineColor="transparent"
                 activeUnderlineColor="transparent"
                 textColor="white"
-                placeholder="0xD034739C2..."
-                value={recepient}
-                onChangeText={(text) => setRecepient(text)}
+                placeholder="0xC5041cBbB..."
+                value={recepientAddress}
+                onChangeText={(text) => setRecepientAddress(text)}
               />
             </TouchableOpacity>
           </View>

@@ -15,11 +15,12 @@ import { styles as styles } from "../../src/Styles/challenges";
 import MaskedView from "@react-native-masked-view/masked-view";
 import { LinearGradient } from "expo-linear-gradient";
 import { TotalIcon } from "@/src/Icons/IconTotal";
+import { getUserToken } from "@/context/authContext/getUserToken";
 
 const { width, height } = Dimensions.get("window");
 
 type Challenge = {
-  id: number;
+  id: string;
   ChallengeTitle: string;
   ChallengeStatus: string;
   Price: number;
@@ -28,34 +29,47 @@ type Challenge = {
 export default function ChallengesScreen() {
   const { user, loading } = useAuth();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
-  const [totalChallenges, setTotalChallenges] = useState(0)
+  const [totalChallenges, setTotalChallenges] = useState(0);
+  const fetchUserChallenges = async () => {
+    const token = await getUserToken();
 
-  const ChallangesMock = [
-    {
-      id: 1,
-      ChallengeTitle: "Do plank 1 min",
-      ChallengeStatus: "Active",
-      Price: 90,
-    },
-    {
-      id: 2,
-      ChallengeTitle: "Do 10 squats",
-      ChallengeStatus: "Awating",
-      Price: 17,
-    },
-    {
-      id: 3,
-      ChallengeTitle: "Plank 1...",
-      ChallengeStatus: "Completed",
-      Price: 20,
-    },
-    {
-      id: 4,
-      ChallengeTitle: "10 squa...",
-      ChallengeStatus: "Completed",
-      Price: 20,
-    },
-  ];
+    let response = await fetch(
+      `${process.env.EXPO_PUBLIC_SERVER_HOST}/challenge/all`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    
+    if (!response.ok) {
+      alert("HTTP Error " + response.status);
+      return [];
+    }
+
+    const rawData = await response.json();
+
+    const transformed: Challenge[] = rawData.challenges.map(
+      (challenge: any) => ({
+        id: challenge.id,
+        ChallengeTitle: challenge.ChallengeTitle,
+        ChallengeStatus: challenge.ChallengeStatus,
+        Price: parseFloat(challenge.Price),
+      })
+    );
+
+    return transformed;
+  };
+
+  useEffect(() => {
+    const loadChallenges = async () => {
+      const data = await fetchUserChallenges();
+      setChallenges(data);
+    };
+
+    loadChallenges();
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -64,14 +78,8 @@ export default function ChallengesScreen() {
   }, [loading, user]);
 
   useEffect(() => {
-    setChallenges(ChallangesMock);
-  }, []);
-
-  useEffect(() => {
-    setTotalChallenges(challenges.length)
+    setTotalChallenges(challenges.length);
   }, [challenges]);
-
-
 
   if (loading) {
     return <ActivityIndicator size="large" />;
@@ -105,10 +113,14 @@ export default function ChallengesScreen() {
         data={challenges}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => router.push({
-            pathname: '/challengeDetail/[id]',
-            params: {id: item.id.toString()}
-          })}>
+          <TouchableOpacity
+            onPress={() =>
+              router.push({
+                pathname: "/challengeDetail/[id]",
+                params: { id: item.id.toString() },
+              })
+            }
+          >
             <View style={styles.exersiceTable}>
               <View style={{ marginRight: 50, marginLeft: 20 }}>
                 <View style={{ marginBottom: 8, marginTop: 10 }}>
@@ -154,13 +166,21 @@ export default function ChallengesScreen() {
             width: "100%",
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              paddingHorizontal: 20,
+            }}
+          >
             <TotalIcon />
             <Text style={[styles.TotalText, { marginLeft: 7 }]}>
               Total challenges
             </Text>
           </View>
-          <Text style={[styles.TotalText, {paddingRight: 27}]}>{totalChallenges}</Text>
+          <Text style={[styles.TotalText, { paddingRight: 27 }]}>
+            {totalChallenges}
+          </Text>
         </View>
       </View>
     </View>

@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import {
   Text,
   View,
@@ -21,7 +22,7 @@ import { DurationIcon, RecepientIcon } from "@/src/Icons/createChallengeIcons";
 import { BellIcon, TrophyIcon } from "@/src/Icons/indexIcons";
 import { TotalIcon } from "@/src/Icons/IconTotal";
 import { fetchUsdtToEthRate } from "@/context/getPrice/getETHPrice";
-
+import { getWalletData } from '../../context/LocalData/getFromAsync'
 import { getBalance } from "@/Web3Module/getBalance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -49,9 +50,10 @@ export default function IndexScreen() {
   const [rate, setRate] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [showStats, setShowStats] = useState<number>(0);
-  const [currentBalance, setCurrentBalance] = useState<string>('0');
+  const [currentBalance, setCurrentBalance] = useState<string>("0");
   const [expectedMoney, setExpectedMoney] = useState<number>(0);
   const [queueChallenges, setQueueChallenges] = useState<QueueChallenges[]>([]);
+  const [walletExist, setWalletExist] = useState<boolean>(false);
   const [createdTransactions, setCreatedTransactions] = useState<
     TransactionCreated[]
   >([]);
@@ -103,7 +105,7 @@ export default function IndexScreen() {
       recepeintAddress: "0xFf321d9B0cB7c8Ee9a6dF5aCcB6fEeF0b9C4F1B8a",
       Title: "Jebanyhujsyukablad",
     },
-        {
+    {
       id: "5",
       recepeintAddress: "0xFf321d9B0cB7c8Ee9a6dF5aCcB6fEeF0b9C4F1B8a",
       Title: "dsadsaJebyhujsyukablad",
@@ -142,7 +144,7 @@ export default function IndexScreen() {
       return sum + amount.amount;
     }, 0);
 
-    return  total;
+    return total;
   };
 
   useEffect(() => {
@@ -159,28 +161,23 @@ export default function IndexScreen() {
   }, []);
 
   useEffect(() => {
-  const total = getExpectedTotal();
-  setExpectedMoney(total);
+    const total = getExpectedTotal();
+    setExpectedMoney(total);
   }, [queueChallenges]);
 
-  useEffect(() => {
+    useEffect(() => {
     const get = async () => {
-      try {
-        const mnemonic = await AsyncStorage.getItem("Seed-Phrase");
-        const address = await AsyncStorage.getItem("Wallet-Address");
-
-        if (address !== null && mnemonic !== null) {
-            const data = await getBalance(address)
-            setCurrentBalance(data)
-        } else {
-          setCurrentBalance('No connected wallet')
+        const wallet = await getWalletData();
+        if (wallet) {
+          const data = await getBalance(wallet.address);
+          setCurrentBalance(data);
+          setWalletExist(true);
         }
-      } catch (e) {}
-    }
+    };
 
-    get()
-  }, [])
-
+    get();
+  }, []);
+  
   if (loading) {
     return <ActivityIndicator size="large" />;
   }
@@ -198,253 +195,259 @@ export default function IndexScreen() {
   };
 
   return (
-      <View style={[styles.container, { justifyContent: "flex-start" }]}>
-        <View>
-          <TouchableOpacity style={[styles.balanceDisplay]}>
-            <LinearGradient
-              colors={["#6412DF", "#CDA2FB"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              locations={[0, 0.9]}
-              style={styles.containerGradient}
-            >
-              <View style={styles.balanceHeader}>
-                <BalanceIcon />
-                <Text style={styles.currentBalance}>Total balance</Text>
-              </View>
-              <View style={styles.balanceRow}>
-                {rate !== null ? (
+    <View style={[styles.container, { justifyContent: "flex-start" }]}>
+      <View>
+        <TouchableOpacity style={[styles.balanceDisplay]}>
+          <LinearGradient
+            colors={["#6412DF", "#CDA2FB"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            locations={[0, 0.9]}
+            style={styles.containerGradient}
+          >
+            <View style={styles.balanceHeader}>
+              <BalanceIcon />
+              <Text style={styles.currentBalance}>Total balance</Text>
+            </View>
+            <View style={styles.balanceRow}>
+              {rate !== null ? (
+                walletExist == false ? (
+                  <Text style={styles.balanceETH}>No Data</Text>
+                ) : (
                   <Text style={styles.balanceETH}>
                     ${(parseFloat(currentBalance) / rate).toFixed(2)}
                   </Text>
-                ) : (
-                  <Text style={styles.balanceETH}>Loading...</Text>
-                )}
+                )
+              ) : (
+                <Text style={styles.balanceETH}>Loading...</Text>
+              )}
 
-                <View style={styles.exersicePriceBackround}>
-                  {rate !== null ? (
+              <View style={styles.exersicePriceBackround}>
+                {rate !== null ? (
+                  walletExist == false ? (
+                    <Text style={styles.balanceBonus}>No Data</Text>
+                  ) : (
                     <Text style={styles.balanceBonus}>
                       +${(expectedMoney / rate).toFixed(2)}
                     </Text>
-                  ) : (
-                    <Text style={styles.balanceBonus}>Loading...</Text>
-                  )}
-                </View>
+                  )
+                ) : (
+                  <Text style={styles.balanceBonus}>Loading...</Text>
+                )}
               </View>
-              <View style={[styles.balanceHeader, { marginTop: 20 }]}>
-                <DurationIcon color="#c8c8c8" />
+            </View>
+            <View style={[styles.balanceHeader, { marginTop: 20 }]}>
+              <DurationIcon color="#c8c8c8" />
+              <Text
+                style={[
+                  styles.currentBalance,
+                  { fontSize: 12, color: "#c8c8c8" },
+                ]}
+              >
+                Exprected from 3 challenges
+              </Text>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <View>
+          <TouchableOpacity style={styles.backroudAction}>
+            <View style={styles.titleRow}>
+              <BellIcon />
+              <Text style={styles.currentBalance}>
+                {" "}
+                3 New Challegens Actions
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        <View>
+          <TouchableOpacity style={styles.backroudAction}>
+            <View style={styles.titleRow}>
+              <TrophyIcon />
+              <View style={{ flexDirection: "column" }}>
+                <Text style={styles.currentBalance}> My Achivments</Text>
                 <Text
                   style={[
                     styles.currentBalance,
                     { fontSize: 12, color: "#c8c8c8" },
                   ]}
                 >
-                  Exprected from 3 challenges
-                </Text>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-
-          <View>
-            <TouchableOpacity style={styles.backroudAction}>
-              <View style={styles.titleRow}>
-                <BellIcon />
-                <Text style={styles.currentBalance}>
                   {" "}
-                  3 New Challegens Actions
+                  Completed 4 task for $149
                 </Text>
               </View>
-            </TouchableOpacity>
-          </View>
-
-          <View>
-            <TouchableOpacity style={styles.backroudAction}>
-              <View style={styles.titleRow}>
-                <TrophyIcon />
-                <View style={{ flexDirection: "column" }}>
-                  <Text style={styles.currentBalance}> My Achivments</Text>
-                  <Text
-                    style={[
-                      styles.currentBalance,
-                      { fontSize: 12, color: "#c8c8c8" },
-                    ]}
-                  >
-                    {" "}
-                    Completed 4 task for $149
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.challengesRow}>
-            <View style={styles.tabItem}>
-              <TouchableOpacity
-                style={styles.tabButton}
-                onPress={handleShowCreatedStats}
-              >
-                <Text
-                  style={
-                    showStats == 0
-                      ? styles.isActiveSection
-                      : styles.isNoActiveSection
-                  }
-                >
-                  Created
-                </Text>
-              </TouchableOpacity>
-              <View
-                style={showStats == 0 ? styles.activeLine : styles.NoActiveLine}
-              />
             </View>
-            <View style={styles.tabItem}>
-              <TouchableOpacity
-                style={styles.tabButton}
-                onPress={handleShowAcceptedStats}
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.challengesRow}>
+          <View style={styles.tabItem}>
+            <TouchableOpacity
+              style={styles.tabButton}
+              onPress={handleShowCreatedStats}
+            >
+              <Text
+                style={
+                  showStats == 0
+                    ? styles.isActiveSection
+                    : styles.isNoActiveSection
+                }
               >
-                <Text
-                  style={
-                    showStats == 1
-                      ? styles.isActiveSection
-                      : styles.isNoActiveSection
-                  }
-                >
-                  Accepted
-                </Text>
-              </TouchableOpacity>
-              <View
-                style={showStats == 1 ? styles.activeLine : styles.NoActiveLine}
-              />
-            </View>
+                Created
+              </Text>
+            </TouchableOpacity>
+            <View
+              style={showStats == 0 ? styles.activeLine : styles.NoActiveLine}
+            />
           </View>
+          <View style={styles.tabItem}>
+            <TouchableOpacity
+              style={styles.tabButton}
+              onPress={handleShowAcceptedStats}
+            >
+              <Text
+                style={
+                  showStats == 1
+                    ? styles.isActiveSection
+                    : styles.isNoActiveSection
+                }
+              >
+                Accepted
+              </Text>
+            </TouchableOpacity>
+            <View
+              style={showStats == 1 ? styles.activeLine : styles.NoActiveLine}
+            />
+          </View>
+        </View>
 
-          {showStats == 0 ? (
-            <>
-              <ScrollView style={styles.transactionsContainer}>
-                {createdTransactions.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={styles.transactionItem}
-                    onPress={() => console.log("Tapped", item.id)}
-                  >
-                    <View style={styles.transactionRow}>
-                      <View style={styles.transactionRow}>
-                        <View style={{ marginRight: 5 }}>
-                          <RecepientIcon />
-                        </View>
-                        <Text style={styles.transactionItemText}>
-                          {item.recepeintAddress.length > 20
-                            ? `${item.recepeintAddress.substring(0, 14)}...`
-                            : item.recepeintAddress}
-                        </Text>
-                      </View>
-                      {item.Status === "Awaiting" ? (
-                        <Text style={styles.transactionItemTextAwaiting}>
-                          Awaiting
-                        </Text>
-                      ) : item.Status === "Accepted" ? (
-                        <Text style={styles.transactionItemTextAccepted}>
-                          Accepted
-                        </Text>
-                      ) : (
-                        <Text style={styles.transactionItemTextFinished}>
-                          Finished
-                        </Text>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-
-              <View style={styles.totalContainer}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingHorizontal: 20,
-                  }}
+        {showStats == 0 ? (
+          <>
+            <ScrollView style={styles.transactionsContainer}>
+              {createdTransactions.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.transactionItem}
+                  onPress={() => console.log("Tapped", item.id)}
                 >
-                  <TotalIcon />
-                  <Text style={[styles.TotalText, { marginLeft: 7 }]}>
-                    Total Created
-                  </Text>
-                </View>
-                <Text style={[styles.TotalText, { paddingRight: 27 }]}>
-                  {createdTransactions.length}
-                </Text>
-              </View>
-            </>
-          ) : (
-            <>
-              <ScrollView style={styles.transactionsContainer}>
-                {AcceptedTransactions.map((item) => (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={styles.transactionItem}
-                    onPress={() => console.log("Tapped", item.id)}
-                  >
+                  <View style={styles.transactionRow}>
                     <View style={styles.transactionRow}>
-                      <View style={styles.transactionRow}>
-                        <View style={{ marginRight: 5 }}>
-                          <RecepientIcon />
-                        </View>
-                        <Text style={styles.transactionItemText}>
-                          {item.recepeintAddress.length > 20
-                            ? `${item.recepeintAddress.substring(0, 14)}...`
-                            : item.recepeintAddress}
-                        </Text>
+                      <View style={{ marginRight: 5 }}>
+                        <RecepientIcon />
                       </View>
-                      <Text style={styles.transactionItemTextAwaiting}>
-                        {item.Title.length > 10
-                          ? `${item.Title.substring(0, 10)}...`
-                          : item.Title}
+                      <Text style={styles.transactionItemText}>
+                        {item.recepeintAddress.length > 20
+                          ? `${item.recepeintAddress.substring(0, 14)}...`
+                          : item.recepeintAddress}
                       </Text>
                     </View>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+                    {item.Status === "Awaiting" ? (
+                      <Text style={styles.transactionItemTextAwaiting}>
+                        Awaiting
+                      </Text>
+                    ) : item.Status === "Accepted" ? (
+                      <Text style={styles.transactionItemTextAccepted}>
+                        Accepted
+                      </Text>
+                    ) : (
+                      <Text style={styles.transactionItemTextFinished}>
+                        Finished
+                      </Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
 
-              <View style={styles.totalContainer}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingHorizontal: 20,
-                  }}
-                >
-                  <TotalIcon />
-                  <Text style={[styles.TotalText, { marginLeft: 7 }]}>
-                    Total Accepted
-                  </Text>
-                </View>
-                <Text style={[styles.TotalText, { paddingRight: 27 }]}>
-                  {AcceptedTransactions.length}
+            <View style={styles.totalContainer}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingHorizontal: 20,
+                }}
+              >
+                <TotalIcon />
+                <Text style={[styles.TotalText, { marginLeft: 7 }]}>
+                  Total Created
                 </Text>
               </View>
-            </>
-          )}
-        </View>
-
-        <View style={styles.buttonWrapper}>
-          <TouchableOpacity
-            onPress={() => {
-              router.push("/createExercise");
-            }}
-            style={styles.buttonContainer}
-          >
-            <LinearGradient
-              colors={["#6412DF", "#CDA2FB"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              locations={[0, 0.9]}
-              style={styles.buttonGradient}
-            >
-              <Text style={styles.buttonGradientText}>
-                Create New Challange
+              <Text style={[styles.TotalText, { paddingRight: 27 }]}>
+                {createdTransactions.length}
               </Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
+            </View>
+          </>
+        ) : (
+          <>
+            <ScrollView style={styles.transactionsContainer}>
+              {AcceptedTransactions.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.transactionItem}
+                  onPress={() => console.log("Tapped", item.id)}
+                >
+                  <View style={styles.transactionRow}>
+                    <View style={styles.transactionRow}>
+                      <View style={{ marginRight: 5 }}>
+                        <RecepientIcon />
+                      </View>
+                      <Text style={styles.transactionItemText}>
+                        {item.recepeintAddress.length > 20
+                          ? `${item.recepeintAddress.substring(0, 14)}...`
+                          : item.recepeintAddress}
+                      </Text>
+                    </View>
+                    <Text style={styles.transactionItemTextAwaiting}>
+                      {item.Title.length > 10
+                        ? `${item.Title.substring(0, 10)}...`
+                        : item.Title}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <View style={styles.totalContainer}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingHorizontal: 20,
+                }}
+              >
+                <TotalIcon />
+                <Text style={[styles.TotalText, { marginLeft: 7 }]}>
+                  Total Accepted
+                </Text>
+              </View>
+              <Text style={[styles.TotalText, { paddingRight: 27 }]}>
+                {AcceptedTransactions.length}
+              </Text>
+            </View>
+          </>
+        )}
       </View>
+
+      <View style={styles.buttonWrapper}>
+        <TouchableOpacity
+          onPress={() => {
+            router.push("/createExercise");
+          }}
+          style={styles.buttonContainer}
+        >
+          <LinearGradient
+            colors={["#6412DF", "#CDA2FB"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            locations={[0, 0.9]}
+            style={styles.buttonGradient}
+          >
+            <Text style={styles.buttonGradientText}>Create New Challange</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
