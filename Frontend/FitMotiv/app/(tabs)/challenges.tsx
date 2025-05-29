@@ -30,6 +30,9 @@ export default function ChallengesScreen() {
   const { user, loading } = useAuth();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [totalChallenges, setTotalChallenges] = useState(0);
+  const [load, setLoad] = useState<boolean>(true)
+
+
   const fetchUserChallenges = async () => {
     const token = await getUserToken();
 
@@ -45,9 +48,10 @@ export default function ChallengesScreen() {
     
     if (!response.ok) {
       alert("HTTP Error " + response.status);
+      setLoad(false)
       return [];
     }
-
+    
     const rawData = await response.json();
 
     const transformed: Challenge[] = rawData.challenges.map(
@@ -58,6 +62,8 @@ export default function ChallengesScreen() {
         Price: parseFloat(challenge.Price),
       })
     );
+    
+    setLoad(false)
 
     return transformed;
   };
@@ -89,6 +95,15 @@ export default function ChallengesScreen() {
     return null;
   }
 
+  if (load) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#BABABA" />
+        <Text>Loading..</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.titleBox}>
@@ -109,6 +124,7 @@ export default function ChallengesScreen() {
           </LinearGradient>
         </MaskedView>
       </View>
+
       <FlatList
         data={challenges}
         keyExtractor={(item) => item.id.toString()}

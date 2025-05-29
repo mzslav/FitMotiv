@@ -6,7 +6,9 @@ export const createChallenge = async (req, res) => {
     const { recepient, title, mode, exercises, duration, bet, message } =
       req.body;
 
-    const creator = req.uid;
+    const uid = req.uid;
+    let user = await User.findOne({ firebaseUid: uid });
+    const creator = user.walletAddress;
 
     if (
       !creator ||
@@ -88,5 +90,44 @@ export const getUserChallenges = async (req, res) => {
     });
   } else {
     return res.status(404).json({ message: "No user with this address" });
+  }
+};
+
+
+
+export const getChallengeData = async (req, res) => {
+  const uid = req.uid;
+  const { exercise_id } = req.query;
+
+  if (!uid || !exercise_id ) {
+    return res.status(400).json({ message: "UID and exercise_id is required" });
+  }
+
+  let challenge = await Challenge.findOne({ _id: exercise_id });
+
+  if (challenge) {
+
+    const data = {
+      id: challenge._id,
+      title: challenge.title,
+      description: challenge.message,
+      sender: challenge.creator,
+      money: challenge.bet,
+      deadline: challenge.duration,
+      exercises: challenge.exercises.map((e, index) => ({
+        id: e._id,
+        exerciseType: e.type || "unknown",
+        exerciseTitle: e.type || "unknown",
+        progression: Math.floor(Math.random() * 100) + 1
+      })),
+    };
+
+    
+    return res.status(201).json({
+      message: "Challenges find successfully.",
+      challenge: data,
+    });
+  } else {
+    return res.status(404).json({ message: "No challenge with this _id" });
   }
 };

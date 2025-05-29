@@ -46,7 +46,7 @@ type QueueChallenges = {
 
 export default function IndexScreen() {
   const { user, loading } = useAuth();
-  const [refreshing, setRefreshing] = useState(false);
+  const [load, setLoad] = useState(true);
   const [rate, setRate] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [showStats, setShowStats] = useState<number>(0);
@@ -158,6 +158,7 @@ export default function IndexScreen() {
     setAcceptedTransactions(mockData2);
     setQueueChallenges(amountData);
     getRate();
+    setLoad(false)
   }, []);
 
   useEffect(() => {
@@ -186,6 +187,13 @@ export default function IndexScreen() {
     return null;
   }
 
+  if (load) {
+    return(
+     <View style={[styles.container, { justifyContent: "flex-start" }]}>
+      <ActivityIndicator size="large" />;
+    </View>
+    );
+  }
   const handleShowCreatedStats = () => {
     setShowStats(0);
   };

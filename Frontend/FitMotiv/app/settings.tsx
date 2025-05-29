@@ -15,6 +15,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/firebase/firebaseConfig";
 import { styles as styles } from "../src/Styles/Index";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getUserToken } from "@/context/authContext/getUserToken";
 
 export default function SettingsScreen() {
   const { user, loading } = useAuth();
@@ -43,33 +44,22 @@ export default function SettingsScreen() {
     return null;
   }
 
-  const handleAdd = () => {
-    const newItems = [nextId, nextId + 1, nextId + 2];
-    setExerciseItems([...exerciseItems, ...newItems]);
-    setNextId(nextId + 3);
+  const handleToken = async () => {
 
-    console.log(exerciseItems);
+    const token = await getUserToken();
+
+    console.log(token);
   };
 
-  const addItemToArray = (index: number) => [console.log(index)];
 
   return (
     <View style={styles.container}>
       <View>
-        <TouchableOpacity onPress={handleAdd} style={{ marginBottom: 20 }}>
-          <Text style={{ color: "white", fontSize: 20 }}> Add</Text>
+        <TouchableOpacity onPress={handleToken} style={{ marginBottom: 20 }}>
+          <Text style={{ color: "white", fontSize: 20 }}> Get Token </Text>
         </TouchableOpacity>
       </View>
 
-      {exerciseItems.map((item, index) => (
-        <View key={item} style={{ marginBottom: 10 }}>
-          <TouchableOpacity
-            onPress={() => addItemToArray(item)}
-            style={{ height: 50, width: 50, backgroundColor: "red" }}
-          />
-          <Text style={{ color: "white" }}>ID: {item}</Text>
-        </View>
-      ))}
 
       <Button title="Log Out" onPress={handleLogout} />
     </View>

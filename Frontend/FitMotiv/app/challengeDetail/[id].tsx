@@ -1,22 +1,28 @@
-import { View, Text, TouchableOpacity, FlatList, Alert } from "react-native";
+import { View, Text, TouchableOpacity, FlatList, Alert, ActivityIndicator  } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { styles as styles } from "../../src/Styles/challengesDetail-ID";
 import { ClockIcon } from "@/src/Icons/challengeDetailIcons";
 import { RecipientIcon } from "@/src/Icons/WalletIcons";
-import { SquatIcon, PlankIcon, PushUpsIc } from "@/src/Icons/challengeDetailIcons";
+import {
+  SquatIcon,
+  PlankIcon,
+  PushUpsIc,
+} from "@/src/Icons/challengeDetailIcons";
 import { Button, ProgressBar } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
+import { getUserToken } from "@/context/authContext/getUserToken";
+import { fetchUsdtToEthRate } from "@/context/getPrice/getETHPrice";
 
 type Exercise = {
-  id: number;
+  id: string;
   title: string;
   description: string;
   sender: string;
   money: number;
   deadline: number;
   exercises: {
-    id: number;
+    id: string;
     exerciseType: string;
     exerciseTitle: string;
     progression: number;
@@ -24,17 +30,19 @@ type Exercise = {
 };
 
 type SelectedExercise = {
-  id: number;
+  id: string;
   exerciseType: string;
 };
 
 export default function ChallengeDetailScreen() {
   const { id } = useLocalSearchParams();
+  const [rate, setRate] = useState<number | null>(null);
   const [exercise, setExercise] = useState<Exercise | null>(null);
+  const [loading, setLoading] = useState(true);      
   const [selectedExercise, setSelectedExercise] =
     useState<SelectedExercise | null>(null);
 
-  const handleSelected = (id: number, exerciseType: string) => {
+  const handleSelected = (id: string, exerciseType: string) => {
     setSelectedExercise({ id, exerciseType });
   };
 
@@ -44,51 +52,57 @@ export default function ChallengeDetailScreen() {
     } else {
       router.push({
         pathname: "/exercise/[id]",
-        params: { id: selectedExercise.id.toString(), exerciseType: selectedExercise.exerciseType},
+        params: {
+          id: selectedExercise.id.toString(),
+          exerciseType: selectedExercise.exerciseType,
+        },
       });
     }
   };
 
-  const mockData: Exercise[] = [
-    {
-      id: 1,
-      title: "Do 10 squats",
-      description: "You have to do 10 squats per day for 1 week",
-      sender: "0xFAD2432fD22D",
-      money: 15,
-      deadline: 2025,
-      exercises: [
-        {
-          id: 321,
-          exerciseType: "squats",
-          exerciseTitle: "10 Squats",
-          progression: 70,
-        },
-        {
-          id: 534,
-          exerciseType: "plank",
-          exerciseTitle: "1 Minute Plank",
-          progression: 20,
-        },
-        {
-          id: 421,
-          exerciseType: "push-up",
-          exerciseTitle: "10 push-ups",
-          progression: 15,
-        },
-      ],
-    },
-  ];
+  const getRate = async () => {
+    try {
+      const rate = await fetchUsdtToEthRate();
+      setRate(rate);
+    } catch (err) {}
+  };
+
+  const fetchChallengeData = async () => {
+    const token = await getUserToken();
+
+    const url = `${process.env.EXPO_PUBLIC_SERVER_HOST}/challenge/getChallengeData?exercise_id=${id}`;
+
+    let response = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      alert("HTTP Error " + response.status);
+      setLoading(false);
+      return;
+    }
+    const data = await response.json();
+    setExercise(data.challenge);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    setExercise(mockData[0]);
-  }, []);
+    if (id) {
+      fetchChallengeData();
+      getRate();
+    } else {
+      console.log("ID is missing or falsy");
+    }
+  }, [id]);
 
   const renderExerciseItem = ({
     item,
   }: {
     item: {
-      id: number;
+      id: string;
       exerciseType: string;
       exerciseTitle: string;
       progression: number;
@@ -113,12 +127,11 @@ export default function ChallengeDetailScreen() {
         <View style={styles.backRoundIconExercise}>
           {item.exerciseType === "plank" ? (
             <PlankIcon />
-          ) : item.exerciseType === "push-up" ? (
+          ) : item.exerciseType === "push-ups" ? (
             <PushUpsIc />
           ) : (
             <SquatIcon />
           )}
-
         </View>
         <View style={{ flex: 1, marginLeft: 5, paddingRight: 5 }}>
           <View
@@ -130,7 +143,7 @@ export default function ChallengeDetailScreen() {
           >
             <Text style={styles.ExerciseTitle}>{item.exerciseTitle}</Text>
             <Text style={styles.procent}>{item.progression}%</Text>
-      </View>
+          </View>
           <ProgressBar
             progress={item.progression / 100}
             color="#9A5CEE"
@@ -145,8 +158,19 @@ export default function ChallengeDetailScreen() {
     );
   };
 
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#9A5CEE" />
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
+      {!exercise && <Text>Loading...</Text>}
+
       <View style={styles.contentContainer}>
         <View style={styles.contentText}>
           <Text style={styles.challengeTitle}>{exercise?.title}</Text>
@@ -159,7 +183,7 @@ export default function ChallengeDetailScreen() {
           <View style={{ flexDirection: "row" }}>
             <RecipientIcon />
             <Text style={[styles.challengeDescription, { paddingLeft: 5 }]}>
-              {exercise?.sender}
+              {exercise?.sender ? exercise.sender.slice(0, 15) + "..." : ""}
             </Text>
           </View>
           <View style={{ flexDirection: "row" }}>
@@ -170,16 +194,21 @@ export default function ChallengeDetailScreen() {
                 { paddingLeft: 5, color: "#2BC4AD" },
               ]}
             >
-              ${exercise?.money}
+              {exercise?.money != null && rate != null
+                ? `≈ $${(exercise.money / rate).toFixed(2)}`
+                : "loading.."}
             </Text>
           </View>
         </View>
 
         <View style={styles.timeTable}>
           <ClockIcon />
-          <Text style={styles.timeLeft}>{exercise?.deadline}</Text>
+          <Text style={styles.timeLeft}>
+            {exercise?.deadline
+              ? new Date(exercise.deadline).toLocaleString()
+              : "Empty"}
+          </Text>
         </View>
-
         <View style={styles.ExerciseContainer}>
           <Text style={[styles.challengeDescription, { paddingBottom: 5 }]}>
             Exercise
