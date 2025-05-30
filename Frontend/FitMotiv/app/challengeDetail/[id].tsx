@@ -1,4 +1,12 @@
-import { View, Text, TouchableOpacity, FlatList, Alert, ActivityIndicator  } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+  ActivityIndicator,
+  Modal,
+} from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { styles as styles } from "../../src/Styles/challengesDetail-ID";
 import { ClockIcon } from "@/src/Icons/challengeDetailIcons";
@@ -21,6 +29,7 @@ type Exercise = {
   sender: string;
   money: number;
   deadline: number;
+  ChallengeStatus: String;
   exercises: {
     id: string;
     exerciseType: string;
@@ -38,7 +47,9 @@ export default function ChallengeDetailScreen() {
   const { id } = useLocalSearchParams();
   const [rate, setRate] = useState<number | null>(null);
   const [exercise, setExercise] = useState<Exercise | null>(null);
-  const [loading, setLoading] = useState(true);      
+  const [loading, setLoading] = useState(true);
+  const [modalVisible, setModalVisible] = useState(true);
+  const [StartButtonVisible, setStartButtonVisible] = useState(true);
   const [selectedExercise, setSelectedExercise] =
     useState<SelectedExercise | null>(null);
 
@@ -58,6 +69,42 @@ export default function ChallengeDetailScreen() {
         },
       });
     }
+  };
+
+  const activateChallenge = async () => {
+    const token = await getUserToken();
+
+    const url = `${process.env.EXPO_PUBLIC_SERVER_HOST}/challenge/setActiveChallenge`;
+
+    const exercise_id = id;
+
+    let response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ exercise_id }),
+    });
+
+    if (!response.ok) {
+      alert("HTTP Error " + response.status);
+      setLoading(false);
+      return;
+    }
+
+    fetchChallengeData();
+  };
+
+  const handleExit = () => {
+    setModalVisible(false);
+    router.push("/(tabs)");
+  };
+
+  const handleConfirm = async () => {
+    setModalVisible(false);
+    await activateChallenge();
+    setModalVisible(false);
   };
 
   const getRate = async () => {
@@ -97,6 +144,41 @@ export default function ChallengeDetailScreen() {
       console.log("ID is missing or falsy");
     }
   }, [id]);
+
+  useEffect(() => {
+    if (exercise?.ChallengeStatus === "Completed") {
+      setStartButtonVisible(false);
+    }
+  }, [exercise?.ChallengeStatus]);
+
+  if (exercise?.ChallengeStatus == "Awaiting") {
+    return (
+      <Modal transparent={true} animationType="fade" visible={modalVisible}>
+        <View style={styles.overlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.title}>Challenge awaits confirmation</Text>
+            <Text style={styles.message}>
+              Do you want to activate this challenge?
+            </Text>
+
+            <View style={styles.buttonRow}>
+              <TouchableOpacity style={styles.button} onPress={handleConfirm}>
+                <Text style={[styles.buttonText, { color: "#fff" }]}>
+                  Continue
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.exitButton]}
+                onPress={handleExit}
+              >
+                <Text style={styles.buttonText}>Exit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
 
   const renderExerciseItem = ({
     item,
@@ -194,10 +276,9 @@ export default function ChallengeDetailScreen() {
                 { paddingLeft: 5, color: "#2BC4AD" },
               ]}
             >
-          {exercise?.money != null && typeof rate === "number" && rate > 0
-            ? `≈ $${(exercise.money / rate).toFixed(2)}`
-            : "loading.."}
-
+              {exercise?.money != null && typeof rate === "number" && rate > 0
+                ? `≈ $${(exercise.money / rate).toFixed(2)}`
+                : "loading.."}
             </Text>
           </View>
         </View>
@@ -226,19 +307,24 @@ export default function ChallengeDetailScreen() {
         </View>
       </View>
 
-      <View style={styles.buttonWrapper}>
-        <TouchableOpacity onPress={handleStart} style={styles.buttonContainer}>
-          <LinearGradient
-            colors={["#6412DF", "#CDA2FB"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            locations={[0, 0.9]}
-            style={styles.buttonGradient}
+      {StartButtonVisible && (
+        <View style={styles.buttonWrapper}>
+          <TouchableOpacity
+            onPress={handleStart}
+            style={styles.buttonContainer}
           >
-            <Text style={styles.buttonGradientText}>Start</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+            <LinearGradient
+              colors={["#6412DF", "#CDA2FB"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              locations={[0, 0.9]}
+              style={styles.buttonGradient}
+            >
+              <Text style={styles.buttonGradientText}>Start</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }

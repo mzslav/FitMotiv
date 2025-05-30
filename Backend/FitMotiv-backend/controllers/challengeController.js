@@ -123,6 +123,7 @@ export const getChallengeData = async (req, res) => {
       sender: challenge.creator,
       money: challenge.bet,
       deadline: challenge.duration,
+      ChallengeStatus: challenge.ChallengeStatus,
       exercises: challenge.exercises.map((e, index) => ({
         id: e._id,
         exerciseType: e.type || "unknown",
@@ -138,5 +139,31 @@ export const getChallengeData = async (req, res) => {
     });
   } else {
     return res.status(404).json({ message: "No challenge with this _id" });
+  }
+};
+
+
+export const setActiveChallenge = async (req, res) => {
+  const uid = req.uid;
+  const { exercise_id } = req.body;
+
+  if (!uid || !exercise_id) {
+    return res.status(400).json({ message: "UID and exercise_id is required" });
+  }
+
+  try {
+    const challenge = await Challenge.findOne({ _id: exercise_id });
+
+    if (!challenge) {
+      return res.status(404).json({ message: "No challenge with this _id" });
+    }
+
+    challenge.ChallengeStatus = "Active";
+    await challenge.save();
+
+    return res.status(200).json({ message: "Challenge status updated to Active." });
+  } catch (error) {
+    console.error("Error updating challenge status:", error);
+    return res.status(500).json({ message: "Internal server error." });
   }
 };

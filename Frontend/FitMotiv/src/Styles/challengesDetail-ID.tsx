@@ -124,4 +124,48 @@ export const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 6,
   },
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    width: "80%",
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 15,
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  message: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  button: {
+    backgroundColor: "#9A5CEE",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    marginHorizontal: 5,
+  },
+  exitButton: {
+    borderRadius: 25,
+    borderColor: "#fff",
+    borderWidth: 1,
+    backgroundColor: "transparent",
+  },
+  buttonText: {
+    color: "black",
+    fontWeight: 700,
+  },
 });
