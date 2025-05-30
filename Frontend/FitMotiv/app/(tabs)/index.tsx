@@ -26,6 +26,7 @@ import { fetchUsdtToEthRate } from "@/context/getPrice/getETHPrice";
 import { getWalletData } from "../../context/LocalData/getFromAsync";
 import { getBalance } from "@/Web3Module/getBalance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getUserToken } from "@/context/authContext/getUserToken";
 
 type TransactionCreated = {
   id: string;
@@ -114,32 +115,42 @@ export default function IndexScreen() {
     },
   ];
 
-  const amountData = [
-    {
-      id: "1",
-      recepeintAddress: "0FD234b6C98D9eF345aD34Bf3D4B9bB3eF4C9e2A01",
-      amount: 0.015,
-    },
-    {
-      id: "2",
-      recepeintAddress: "0x5A43C90F1F8f1e9A2E2A81e4E4A3C0a2F8Dd2F34",
-      amount: 0.005,
-    },
-    {
-      id: "3",
-      recepeintAddress: "0x8115feEdD7F2c3a4Bb7c8C4eE8D6A7A9d9eC2Bc9F2e",
-      amount: 0.02,
-    },
-  ];
+
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     setCreatedTransactions(mockData);
     setAcceptedTransactions(mockData2);
-    setQueueChallenges(amountData);
     getRate();
     setRefreshing(false);
   }, []);
+
+
+  const fetchExpectedAmount = async () => {
+    const token = await getUserToken();
+
+    let response = await fetch(
+      `${process.env.EXPO_PUBLIC_SERVER_HOST}/challenge/getExpectedAmount`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      alert("HTTP Error " + response.status);
+      setLoad(false);
+      return [];
+    }
+
+    const RawData = await response.json();
+
+    const data = RawData.amount
+
+    setExpectedMoney(data)
+  }
 
   const getRate = async () => {
     try {
@@ -148,14 +159,6 @@ export default function IndexScreen() {
     } catch (err) {
       setError("Error while get data");
     }
-  };
-
-  const getExpectedTotal = () => {
-    const total = queueChallenges.reduce((sum, amount) => {
-      return sum + amount.amount;
-    }, 0);
-
-    return total;
   };
 
   useEffect(() => {
@@ -167,14 +170,13 @@ export default function IndexScreen() {
   useEffect(() => {
     setCreatedTransactions(mockData);
     setAcceptedTransactions(mockData2);
-    setQueueChallenges(amountData);
+    fetchExpectedAmount()
     getRate();
     setLoad(false);
   }, []);
 
   useEffect(() => {
-    const total = getExpectedTotal();
-    setExpectedMoney(total);
+
   }, [queueChallenges]);
 
   useEffect(() => {

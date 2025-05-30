@@ -32,22 +32,20 @@ export const createChallenge = async (req, res) => {
 
     for (const ex of exercises) {
       if (!ex.type || typeof ex.repetitions !== "number") {
-        return res
-          .status(400)
-          .json({
-            message:
-              "Each exercise must have a type and a number of repetitions.",
-          });
+        return res.status(400).json({
+          message:
+            "Each exercise must have a type and a number of repetitions.",
+        });
       }
     }
-    
+
     const exercisesWithProgression = exercises.map((ex) => ({
       ...ex,
       progression: 0,
       exerciseTitle: `${ex.repetitions} ${ex.type}`,
     }));
 
-    const ChallengeStatus = 'Awaiting';
+    const ChallengeStatus = "Awaiting";
 
     const newChallenge = new Challenge({
       creator,
@@ -86,13 +84,12 @@ export const getUserChallenges = async (req, res) => {
     const wallet = user.walletAddress;
     let challenges = await Challenge.find({ recepient: wallet });
 
-    const data = challenges.map(c => ({
-        id: c._id,
-        ChallengeTitle: c.title,
-        ChallengeStatus: c.ChallengeStatus,
-        Price: c.bet,
-
-    }))
+    const data = challenges.map((c) => ({
+      id: c._id,
+      ChallengeTitle: c.title,
+      ChallengeStatus: c.ChallengeStatus,
+      Price: c.bet,
+    }));
     return res.status(201).json({
       message: "Challenges find successfully.",
       challenges: data,
@@ -106,14 +103,13 @@ export const getChallengeData = async (req, res) => {
   const uid = req.uid;
   const { exercise_id } = req.query;
 
-  if (!uid || !exercise_id ) {
+  if (!uid || !exercise_id) {
     return res.status(400).json({ message: "UID and exercise_id is required" });
   }
 
   let challenge = await Challenge.findOne({ _id: exercise_id });
 
   if (challenge) {
-
     const data = {
       id: challenge._id,
       title: challenge.title,
@@ -130,7 +126,6 @@ export const getChallengeData = async (req, res) => {
       })),
     };
 
-    
     return res.status(201).json({
       message: "Challenges find successfully.",
       challenge: data,
@@ -158,7 +153,35 @@ export const setActiveChallenge = async (req, res) => {
     challenge.ChallengeStatus = "Active";
     await challenge.save();
 
-    return res.status(200).json({ message: "Challenge status updated to Active." });
+    return res
+      .status(200)
+      .json({ message: "Challenge status updated to Active." });
+  } catch (error) {
+    console.error("Error updating challenge status:", error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+export const getExpectedAmount = async (req, res) => {
+  const uid = req.uid;
+
+  if (!uid) {
+    return res.status(400).json({ message: "UID is required" });
+  }
+
+  try {
+    let user = await User.findOne({ firebaseUid: uid });
+
+    if (user) {
+      const wallet = user.walletAddress;
+      let challenges = await Challenge.find({ recepient: wallet });
+      let amount = 0;
+      challenges.forEach((challenge) => {
+        amount += challenge.bet
+      })
+
+      return res.status(200).json({amount});
+    }
   } catch (error) {
     console.error("Error updating challenge status:", error);
     return res.status(500).json({ message: "Internal server error." });
