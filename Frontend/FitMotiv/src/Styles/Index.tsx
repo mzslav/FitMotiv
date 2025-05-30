@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
   buttonWrapper: {
     width: "100%",
     alignItems: "center",
-    paddingBottom: 40,
+    paddingBottom: 20,
     paddingTop: 20,
   },
   buttonGradient: {

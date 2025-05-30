@@ -40,16 +40,25 @@ export const createChallenge = async (req, res) => {
           });
       }
     }
+    
+    const exercisesWithProgression = exercises.map((ex) => ({
+      ...ex,
+      progression: 0,
+      exerciseTitle: `${ex.repetitions} ${ex.type}`,
+    }));
+
+    const ChallengeStatus = 'Awaiting';
 
     const newChallenge = new Challenge({
       creator,
       recepient,
       title,
       mode,
-      exercises,
+      exercises: exercisesWithProgression,
       duration,
       bet,
       message,
+      ChallengeStatus,
     });
 
     await newChallenge.save();
@@ -80,7 +89,7 @@ export const getUserChallenges = async (req, res) => {
     const data = challenges.map(c => ({
         id: c._id,
         ChallengeTitle: c.title,
-        ChallengeStatus: 'Active',
+        ChallengeStatus: c.ChallengeStatus,
         Price: c.bet,
 
     }))
@@ -117,8 +126,8 @@ export const getChallengeData = async (req, res) => {
       exercises: challenge.exercises.map((e, index) => ({
         id: e._id,
         exerciseType: e.type || "unknown",
-        exerciseTitle: e.type || "unknown",
-        progression: Math.floor(Math.random() * 100) + 1
+        exerciseTitle: e.exerciseTitle || "unknown",
+        progression: e.progression,
       })),
     };
 

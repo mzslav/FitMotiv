@@ -194,9 +194,10 @@ export default function ChallengeDetailScreen() {
                 { paddingLeft: 5, color: "#2BC4AD" },
               ]}
             >
-              {exercise?.money != null && rate != null
-                ? `≈ $${(exercise.money / rate).toFixed(2)}`
-                : "loading.."}
+          {exercise?.money != null && typeof rate === "number" && rate > 0
+            ? `≈ $${(exercise.money / rate).toFixed(2)}`
+            : "loading.."}
+
             </Text>
           </View>
         </View>

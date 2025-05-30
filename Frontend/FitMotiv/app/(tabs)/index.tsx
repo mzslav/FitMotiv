@@ -1,4 +1,4 @@
-import 'react-native-get-random-values';
+import "react-native-get-random-values";
 import {
   Text,
   View,
@@ -7,12 +7,13 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   ScrollView,
+  RefreshControl,
 } from "react-native";
 import { Link, router } from "expo-router";
 import { Image } from "expo-image";
 import { Redirect } from "expo-router";
 import useAuth from "@/context/authContext/auth";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "@/firebase/firebaseConfig";
 import { styles as styles } from "../../src/Styles/Index";
@@ -22,7 +23,7 @@ import { DurationIcon, RecepientIcon } from "@/src/Icons/createChallengeIcons";
 import { BellIcon, TrophyIcon } from "@/src/Icons/indexIcons";
 import { TotalIcon } from "@/src/Icons/IconTotal";
 import { fetchUsdtToEthRate } from "@/context/getPrice/getETHPrice";
-import { getWalletData } from '../../context/LocalData/getFromAsync'
+import { getWalletData } from "../../context/LocalData/getFromAsync";
 import { getBalance } from "@/Web3Module/getBalance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -54,6 +55,7 @@ export default function IndexScreen() {
   const [expectedMoney, setExpectedMoney] = useState<number>(0);
   const [queueChallenges, setQueueChallenges] = useState<QueueChallenges[]>([]);
   const [walletExist, setWalletExist] = useState<boolean>(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [createdTransactions, setCreatedTransactions] = useState<
     TransactionCreated[]
   >([]);
@@ -130,6 +132,15 @@ export default function IndexScreen() {
     },
   ];
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    setCreatedTransactions(mockData);
+    setAcceptedTransactions(mockData2);
+    setQueueChallenges(amountData);
+    getRate();
+    setRefreshing(false);
+  }, []);
+
   const getRate = async () => {
     try {
       const rate = await fetchUsdtToEthRate();
@@ -158,7 +169,7 @@ export default function IndexScreen() {
     setAcceptedTransactions(mockData2);
     setQueueChallenges(amountData);
     getRate();
-    setLoad(false)
+    setLoad(false);
   }, []);
 
   useEffect(() => {
@@ -166,19 +177,19 @@ export default function IndexScreen() {
     setExpectedMoney(total);
   }, [queueChallenges]);
 
-    useEffect(() => {
+  useEffect(() => {
     const get = async () => {
-        const wallet = await getWalletData();
-        if (wallet) {
-          const data = await getBalance(wallet.address);
-          setCurrentBalance(data);
-          setWalletExist(true);
-        }
+      const wallet = await getWalletData();
+      if (wallet) {
+        const data = await getBalance(wallet.address);
+        setCurrentBalance(data);
+        setWalletExist(true);
+      }
     };
 
     get();
   }, []);
-  
+
   if (loading) {
     return <ActivityIndicator size="large" />;
   }
@@ -188,10 +199,10 @@ export default function IndexScreen() {
   }
 
   if (load) {
-    return(
-     <View style={[styles.container, { justifyContent: "flex-start" }]}>
-      <ActivityIndicator size="large" />;
-    </View>
+    return (
+      <View style={[styles.container, { justifyContent: "flex-start" }]}>
+        <ActivityIndicator size="large" />;
+      </View>
     );
   }
   const handleShowCreatedStats = () => {
@@ -205,7 +216,7 @@ export default function IndexScreen() {
   return (
     <View style={[styles.container, { justifyContent: "flex-start" }]}>
       <View>
-        <TouchableOpacity style={[styles.balanceDisplay]}>
+        <TouchableOpacity style={[styles.balanceDisplay]} onPress={onRefresh}>
           <LinearGradient
             colors={["#6412DF", "#CDA2FB"]}
             start={{ x: 0, y: 0 }}

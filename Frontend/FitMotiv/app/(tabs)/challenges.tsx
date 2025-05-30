@@ -7,15 +7,17 @@ import {
   ScrollView,
   FlatList,
   Dimensions,
+  RefreshControl,
 } from "react-native";
 import useAuth from "@/context/authContext/auth";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { styles as styles } from "../../src/Styles/challenges";
 import MaskedView from "@react-native-masked-view/masked-view";
 import { LinearGradient } from "expo-linear-gradient";
 import { TotalIcon } from "@/src/Icons/IconTotal";
 import { getUserToken } from "@/context/authContext/getUserToken";
+import { fetchUsdtToEthRate } from "@/context/getPrice/getETHPrice";
 
 const { width, height } = Dimensions.get("window");
 
@@ -30,8 +32,9 @@ export default function ChallengesScreen() {
   const { user, loading } = useAuth();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [totalChallenges, setTotalChallenges] = useState(0);
-  const [load, setLoad] = useState<boolean>(true)
-
+  const [load, setLoad] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [rate, setRate] = useState<number | null>(null);
 
   const fetchUserChallenges = async () => {
     const token = await getUserToken();
@@ -45,13 +48,13 @@ export default function ChallengesScreen() {
         },
       }
     );
-    
+
     if (!response.ok) {
       alert("HTTP Error " + response.status);
-      setLoad(false)
+      setLoad(false);
       return [];
     }
-    
+
     const rawData = await response.json();
 
     const transformed: Challenge[] = rawData.challenges.map(
@@ -62,18 +65,33 @@ export default function ChallengesScreen() {
         Price: parseFloat(challenge.Price),
       })
     );
-    
-    setLoad(false)
+
+    setLoad(false);
 
     return transformed;
   };
+
+  const getRate = async () => {
+    try {
+      const rate = await fetchUsdtToEthRate();
+      setRate(rate);
+    } catch (err) {}
+  };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    const data = await fetchUserChallenges();
+    setChallenges(data);
+    getRate();
+    setRefreshing(false);
+  }, []);
 
   useEffect(() => {
     const loadChallenges = async () => {
       const data = await fetchUserChallenges();
       setChallenges(data);
     };
-
+    getRate();
     loadChallenges();
   }, []);
 
@@ -128,6 +146,9 @@ export default function ChallengesScreen() {
       <FlatList
         data={challenges}
         keyExtractor={(item) => item.id.toString()}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() =>
@@ -141,15 +162,21 @@ export default function ChallengesScreen() {
               <View style={{ marginRight: 50, marginLeft: 20 }}>
                 <View style={{ marginBottom: 8, marginTop: 10 }}>
                   <Text style={styles.exersiceTitle}>
-                    {item.ChallengeTitle.length > 20
-                      ? `${item.ChallengeTitle.substring(0, 10)}...`
+                    {item.ChallengeTitle.length > 10
+                      ? `${item.ChallengeTitle.slice(0, 7)}...`
                       : item.ChallengeTitle}
                   </Text>
                 </View>
                 <View
                   style={[styles.exersicePriceBackround, { marginBottom: 10 }]}
                 >
-                  <Text style={styles.exersiceTitle}>≈ ${item.Price}</Text>
+                  {rate !== null ? (
+                    <Text style={styles.exersiceTitle}>
+                      ≈ ${(item.Price / rate).toFixed(2)}
+                    </Text>
+                  ) : (
+                    <Text style={styles.exersiceTitle}>Loading...</Text>
+                  )}
                 </View>
               </View>
               <View
@@ -157,7 +184,7 @@ export default function ChallengesScreen() {
                   styles.exersiceStatusBackround,
                   item.ChallengeStatus === "Active"
                     ? {}
-                    : item.ChallengeStatus === "Awating"
+                    : item.ChallengeStatus === "Awaiting"
                     ? { backgroundColor: "grey" }
                     : item.ChallengeStatus === "Completed"
                     ? { backgroundColor: "transparent" }

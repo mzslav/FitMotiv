@@ -9,6 +9,14 @@ const exerciseSchema = new mongoose.Schema({
     type: Number, 
     required: true 
   },
+  exerciseTitle: {
+    type: String, 
+    required: true 
+  },
+  progression: {
+    type: Number, 
+    required: true ,
+  },
 });
 
 const challengeSchema = new mongoose.Schema(
@@ -44,6 +52,10 @@ const challengeSchema = new mongoose.Schema(
     message: {
       type: String,
     },
+    ChallengeStatus: {
+      type: String,
+      required: true,
+    }
   },
   { timestamps: true }
 );
