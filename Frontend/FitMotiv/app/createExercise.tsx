@@ -120,16 +120,6 @@ export default function CreateExerciseScreen() {
     return null;
   }
 
-  const onPerDay = () => {
-    Alert.alert("On Per Day");
-    setMode('per')
-  };
-
-  const onTotalToComplete = () => {
-    Alert.alert("on Total To cpmplete");
-    setMode('total')
-  };
-
   const onSendChallenge = async () => {
   if (!isValidHEXAddress(recepientAddress)) {
     Alert.alert("Error", "Invalid recepient address");
@@ -263,6 +253,7 @@ export default function CreateExerciseScreen() {
     setDuration(newDate);
     setSelectedTime(index)
   }
+  
 
   return (
     <View style={styles.container}>
@@ -309,24 +300,42 @@ export default function CreateExerciseScreen() {
 
         <View style={styles.inputContainer}>
           <View style={styles.buttonsRow}>
-            <TouchableOpacity style={styles.DepositButton} onPress={onPerDay}>
-              <LinearGradient
-                colors={["#6412DF", "#CDA2FB"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                locations={[0, 0.9]}
-                style={[styles.buttonGradient]}
-              >
-                <Text style={[styles.buttonGradientText, { marginRight: 154 }]}>
-                  Per Day
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.opacityButton}
-              onPress={onTotalToComplete}
+            <TouchableOpacity 
+              style={mode === 'per' ? styles.DepositButton : styles.opacityButton} 
+              onPress={() => setMode('per')}
             >
-              <Text style={styles.buttonGradientText}>Total To Complete</Text>
+              {mode === 'per' ? (
+                <LinearGradient
+                  colors={["#6412DF", "#CDA2FB"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  locations={[0, 0.9]}
+                  style={[styles.buttonGradient, { width: 146 }]}
+                >
+                  <Text style={styles.buttonGradientText}>Per Day</Text>
+                </LinearGradient>
+              ) : (
+                <Text style={styles.buttonGradientText}>Per Day</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={mode === 'total' ? styles.DepositButton : styles.opacityButton}
+              onPress={() => setMode('total')}
+            >
+              {mode === 'total' ? (
+                <LinearGradient
+                  colors={["#6412DF", "#CDA2FB"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  locations={[0, 0.9]}
+                  style={[styles.buttonGradient, { width: 146 }]}
+                >
+                  <Text style={styles.buttonGradientText}>Total To Complete</Text>
+                </LinearGradient>
+              ) : (
+                <Text style={styles.buttonGradientText}>Total To Complete</Text>
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -604,7 +613,7 @@ export default function CreateExerciseScreen() {
               Select Repetitions
             </Text>
             <ScrollView>
-              {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+              {Array.from({ length: 50 }, (_, i) => i + 1).map((num) => (
                 <TouchableOpacity
                   key={num}
                   style={{
@@ -623,8 +632,8 @@ export default function CreateExerciseScreen() {
               style={{
                 marginTop: 15,
                 padding: 10,
-                borderRadius: 5,
-                backgroundColor: "#6412DF"
+                borderRadius: 25,
+                backgroundColor: "#9A5CEE"
               }}
               onPress={() => setModalVisible(false)}
             >

@@ -102,8 +102,6 @@ export const getUserChallenges = async (req, res) => {
   }
 };
 
-
-
 export const getChallengeData = async (req, res) => {
   const uid = req.uid;
   const { exercise_id } = req.query;
@@ -141,7 +139,6 @@ export const getChallengeData = async (req, res) => {
     return res.status(404).json({ message: "No challenge with this _id" });
   }
 };
-
 
 export const setActiveChallenge = async (req, res) => {
   const uid = req.uid;
