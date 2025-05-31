@@ -16,6 +16,7 @@ import { auth } from "@/firebase/firebaseConfig";
 import { LinearGradient } from "expo-linear-gradient";
 import { ProgressBar } from "react-native-paper";
 import { styles as styles } from "../../src/Styles/exercises";
+import { getUserToken } from "@/context/authContext/getUserToken";
 import {
   PlankIcon,
   PushUpsIc,
@@ -24,32 +25,55 @@ import {
 import { WebView } from "react-native-webview";
 
 export default function ExerciseScreen() {
-  // const { id, exerciseType } = useLocalSearchParams();
-  const id = 532;
-  const exerciseType = "plank";
-  const progression = 63;
-  const exerciseTitle = "Plank 2 min";
-
   const { user, loading } = useAuth();
+  const { challenge_id, id } = useLocalSearchParams();
+  const [exerciseType, setExerciseType] = useState<string>("");
+  const [progression, setProgression] = useState<number>(0);
+  const [exerciseTitle, setExerciseTitle] = useState<string>("");
   const [time, setTime] = useState(0);
 
-  const CAMERA_TEST_URL = "https://helpful-peony-5cfc5d.netlify.app/"
+  const fetchChallengeData = async () => {
+    try {
+      const token = await getUserToken();
+      const url = `${process.env.EXPO_PUBLIC_SERVER_HOST}/exercise/getExerciseData?challenge_id=${challenge_id}&exercise_id=${id}`;
 
-  // const counter = () => {
-  //   setTimeout(() => {
-  //     setTime(time + 1)
-  //   }, 1000);
-  // }
+      let response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-  //   useEffect(() => {
-  //   counter();
-  // })
+      if (!response.ok) {
+        alert("HTTP Error " + response.status);
+        return;
+      }
+
+      const data = await response.json();
+
+      setExerciseTitle(data.exerciseTitle);
+      setExerciseType(data.exerciseType);
+      setProgression(data.progression);
+    } catch (error) {
+      console.error("Data retrieval error:", error);
+      alert("Data loading error");
+    }
+  };
+
+  const CAMERA_TEST_URL = "https://helpful-peony-5cfc5d.netlify.app/";
 
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/auth/login");
     }
-  });
+  }, [loading, user]);
+
+  useEffect(() => {
+    const getData = async () => {
+      await fetchChallengeData();
+    };
+    getData();
+  }, []);
 
   if (loading) {
     return <ActivityIndicator size="large" color="#9A5CEE" />;
@@ -59,7 +83,6 @@ export default function ExerciseScreen() {
     return null;
   }
 
-
   return (
     <View style={styles.container}>
       <View style={styles.timeContainer}>
@@ -67,11 +90,7 @@ export default function ExerciseScreen() {
       </View>
 
       <View style={styles.webViewContainer}>
-
-
-      <WebView
-        source={{ uri: CAMERA_TEST_URL }}
-      />
+        <WebView source={{ uri: CAMERA_TEST_URL }} />
       </View>
 
       <View style={styles.statExercise}>
@@ -79,7 +98,7 @@ export default function ExerciseScreen() {
           <View style={styles.backRoundIconExercise}>
             {exerciseType === "plank" ? (
               <PlankIcon />
-            ) : exerciseType === "push-up" ? (
+            ) : exerciseType === "push-ups" ? (
               <PushUpsIc />
             ) : (
               <SquatIcon />
@@ -109,11 +128,10 @@ export default function ExerciseScreen() {
         </View>
       </View>
 
-            
       <View style={styles.buttonWrapper}>
         <TouchableOpacity
           onPress={() => {
-            router.push('/(tabs)');
+            router.back();
           }}
           style={styles.buttonContainer}
         >
@@ -128,7 +146,6 @@ export default function ExerciseScreen() {
           </LinearGradient>
         </TouchableOpacity>
       </View>
-
     </View>
   );
 }

@@ -65,7 +65,7 @@ export default function ChallengeDetailScreen() {
         pathname: "/exercise/[id]",
         params: {
           id: selectedExercise.id.toString(),
-          exerciseType: selectedExercise.exerciseType,
+          challenge_id: id 
         },
       });
     }
