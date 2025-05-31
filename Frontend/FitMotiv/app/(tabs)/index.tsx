@@ -2,20 +2,13 @@ import "react-native-get-random-values";
 import {
   Text,
   View,
-  StyleSheet,
-  Button,
   ActivityIndicator,
   TouchableOpacity,
   ScrollView,
-  RefreshControl,
 } from "react-native";
-import { Link, router } from "expo-router";
-import { Image } from "expo-image";
-import { Redirect } from "expo-router";
+import { router } from "expo-router";
 import useAuth from "@/context/authContext/auth";
 import { useCallback, useEffect, useState } from "react";
-import { signOut } from "firebase/auth";
-import { auth } from "@/firebase/firebaseConfig";
 import { styles as styles } from "../../src/Styles/Index";
 import { LinearGradient } from "expo-linear-gradient";
 import { BalanceIcon } from "@/src/Icons/WalletIcons";
@@ -25,7 +18,6 @@ import { TotalIcon } from "@/src/Icons/IconTotal";
 import { fetchUsdtToEthRate } from "@/context/getPrice/getETHPrice";
 import { getWalletData } from "../../context/LocalData/getFromAsync";
 import { getBalance } from "@/Web3Module/getBalance";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getUserToken } from "@/context/authContext/getUserToken";
 
 type TransactionCreated = {
@@ -40,12 +32,6 @@ type TransactionAccepted = {
   Title: string;
 };
 
-type QueueChallenges = {
-  id: string;
-  recepeintAddress: string;
-  amount: number;
-};
-
 export default function IndexScreen() {
   const { user, loading } = useAuth();
   const [load, setLoad] = useState(true);
@@ -54,9 +40,11 @@ export default function IndexScreen() {
   const [showStats, setShowStats] = useState<number>(0);
   const [currentBalance, setCurrentBalance] = useState<string>("0");
   const [expectedMoney, setExpectedMoney] = useState<number>(0);
-  const [queueChallenges, setQueueChallenges] = useState<QueueChallenges[]>([]);
+  const [expectedTasks, setExpectedTasks] = useState<number>(0);
   const [walletExist, setWalletExist] = useState<boolean>(false);
-  const [refreshing, setRefreshing] = useState(false);
+  const [achivmentsTasks, setAchivmentsTasks] = useState<number>(0);
+  const [achivmentsEarn, setAchivmentsEarn] = useState<number>(0);
+  const [newChallenges, setNewChallenges] = useState<number>(0);
   const [createdTransactions, setCreatedTransactions] = useState<
     TransactionCreated[]
   >([]);
@@ -64,67 +52,39 @@ export default function IndexScreen() {
     TransactionAccepted[]
   >([]);
 
-  const mockData = [
-    {
-      id: "1",
-      recepeintAddress: "0xA1f2b6C98D9eF345aD34Bf3D4B9bB3eF4C9e2A01",
-      Status: "Accepted",
-    },
-    {
-      id: "2",
-      recepeintAddress: "0x5bC3C90F1F8f1e9A2E2A81e4E4A3C0a2F8Dd2F34",
-      Status: "Awaiting",
-    },
-    {
-      id: "3",
-      recepeintAddress: "0x8eEdD7F2c3a4Bb7c8C4eE8D6A7A9d9eC2Bc9F2e7",
-      Status: "Finished",
-    },
-    {
-      id: "4",
-      recepeintAddress: "0xD2e0f9B0cB7c8Ee9a6dF5aCcB6fEeF0b9C4F1B8a",
-      Status: "Awaiting",
-    },
-  ];
+  const fetchUserChallengesData = async () => {
+    const token = await getUserToken();
 
-  const mockData2 = [
-    {
-      id: "1",
-      recepeintAddress: "0FD234b6C98D9eF345aD34Bf3D4B9bB3eF4C9e2A01",
-      Title: "AcDS213sdated",
-    },
-    {
-      id: "2",
-      recepeintAddress: "0x5A43C90F1F8f1e9A2E2A81e4E4A3C0a2F8Dd2F34",
-      Title: "You have to do",
-    },
-    {
-      id: "3",
-      recepeintAddress: "0x8115feEdD7F2c3a4Bb7c8C4eE8D6A7A9d9eC2Bc9F2e7",
-      Title: "Suka blady",
-    },
-    {
-      id: "4",
-      recepeintAddress: "0xFf321d9B0cB7c8Ee9a6dF5aCcB6fEeF0b9C4F1B8a",
-      Title: "Jebanyhujsyukablad",
-    },
-    {
-      id: "5",
-      recepeintAddress: "0xFf321d9B0cB7c8Ee9a6dF5aCcB6fEeF0b9C4F1B8a",
-      Title: "dsadsaJebyhujsyukablad",
-    },
-  ];
+    let response = await fetch(
+      `${process.env.EXPO_PUBLIC_SERVER_HOST}/log/indexData`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
+    if (!response.ok) {
+      alert("HTTP Error " + response.status);
+      setLoad(false);
+      return [];
+    }
 
+    const {
+      challengesCreated,
+      challengesAccepted,
+      amountEarn,
+      amountTasks,
+      newChallenges,
+    } = await response.json();
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    setCreatedTransactions(mockData);
-    setAcceptedTransactions(mockData2);
-    getRate();
-    setRefreshing(false);
-  }, []);
-
+    setCreatedTransactions(challengesCreated);
+    setAcceptedTransactions(challengesAccepted);
+    setAchivmentsTasks(amountTasks);
+    setAchivmentsEarn(amountEarn);
+    setNewChallenges(newChallenges);
+  };
 
   const fetchExpectedAmount = async () => {
     const token = await getUserToken();
@@ -147,10 +107,11 @@ export default function IndexScreen() {
 
     const RawData = await response.json();
 
-    const data = RawData.amount
-
-    setExpectedMoney(data)
-  }
+    const amount = RawData.amount;
+    const tasks = RawData.amountTasks;
+    setExpectedMoney(amount);
+    setExpectedTasks(tasks);
+  };
 
   const getRate = async () => {
     try {
@@ -168,16 +129,11 @@ export default function IndexScreen() {
   }, [loading, user]);
 
   useEffect(() => {
-    setCreatedTransactions(mockData);
-    setAcceptedTransactions(mockData2);
-    fetchExpectedAmount()
+    fetchUserChallengesData();
+    fetchExpectedAmount();
     getRate();
     setLoad(false);
   }, []);
-
-  useEffect(() => {
-
-  }, [queueChallenges]);
 
   useEffect(() => {
     const get = async () => {
@@ -218,66 +174,78 @@ export default function IndexScreen() {
   return (
     <View style={[styles.container, { justifyContent: "flex-start" }]}>
       <View>
-        <TouchableOpacity style={[styles.balanceDisplay]} onPress={onRefresh}>
-          <LinearGradient
-            colors={["#6412DF", "#CDA2FB"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            locations={[0, 0.9]}
-            style={styles.containerGradient}
-          >
-            <View style={styles.balanceHeader}>
-              <BalanceIcon />
-              <Text style={styles.currentBalance}>Total balance</Text>
-            </View>
-            <View style={styles.balanceRow}>
+        <LinearGradient
+          colors={["#6412DF", "#CDA2FB"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          locations={[0, 0.9]}
+          style={styles.containerGradient}
+        >
+          <View style={styles.balanceHeader}>
+            <BalanceIcon />
+            <Text style={styles.currentBalance}>Total balance</Text>
+          </View>
+          <View style={styles.balanceRow}>
+            {rate !== null ? (
+              walletExist == false ? (
+                <Text style={styles.balanceETH}>No Data</Text>
+              ) : (
+                <Text style={styles.balanceETH}>
+                  ${(parseFloat(currentBalance) / rate).toFixed(2)}
+                </Text>
+              )
+            ) : (
+              <Text style={styles.balanceETH}>Loading...</Text>
+            )}
+
+            <View style={styles.exersicePriceBackround}>
               {rate !== null ? (
                 walletExist == false ? (
-                  <Text style={styles.balanceETH}>No Data</Text>
+                  <Text style={styles.balanceBonus}>No Data</Text>
                 ) : (
-                  <Text style={styles.balanceETH}>
-                    ${(parseFloat(currentBalance) / rate).toFixed(2)}
+                  <Text style={styles.balanceBonus}>
+                    +${(expectedMoney / rate).toFixed(2)}
                   </Text>
                 )
               ) : (
-                <Text style={styles.balanceETH}>Loading...</Text>
+                <Text style={styles.balanceBonus}>Loading...</Text>
               )}
-
-              <View style={styles.exersicePriceBackround}>
-                {rate !== null ? (
-                  walletExist == false ? (
-                    <Text style={styles.balanceBonus}>No Data</Text>
-                  ) : (
-                    <Text style={styles.balanceBonus}>
-                      +${(expectedMoney / rate).toFixed(2)}
-                    </Text>
-                  )
-                ) : (
-                  <Text style={styles.balanceBonus}>Loading...</Text>
-                )}
-              </View>
             </View>
-            <View style={[styles.balanceHeader, { marginTop: 20 }]}>
-              <DurationIcon color="#c8c8c8" />
+          </View>
+          <View style={[styles.balanceHeader, { marginTop: 20 }]}>
+            <DurationIcon color="#c8c8c8" />
+
+            {expectedTasks !== 0 ? (
               <Text
                 style={[
                   styles.currentBalance,
                   { fontSize: 12, color: "#c8c8c8" },
                 ]}
               >
-                Exprected from 3 challenges
+                Expected from {expectedTasks} challenges
               </Text>
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
+            ) : (
+              <Text
+                style={[
+                  styles.currentBalance,
+                  { fontSize: 12, color: "#c8c8c8" },
+                ]}
+              >
+                No active challanges
+              </Text>
+            )}
+          </View>
+        </LinearGradient>
 
         <View>
           <TouchableOpacity style={styles.backroudAction}>
             <View style={styles.titleRow}>
               <BellIcon />
+
               <Text style={styles.currentBalance}>
-                {" "}
-                3 New Challegens Actions
+                {newChallenges > 0
+                  ? `${newChallenges} New Challenge Actions`
+                  : "No New Challenge Actions"}
               </Text>
             </View>
           </TouchableOpacity>
@@ -289,15 +257,20 @@ export default function IndexScreen() {
               <TrophyIcon />
               <View style={{ flexDirection: "column" }}>
                 <Text style={styles.currentBalance}> My Achivments</Text>
-                <Text
-                  style={[
-                    styles.currentBalance,
-                    { fontSize: 12, color: "#c8c8c8" },
-                  ]}
-                >
-                  {" "}
-                  Completed 4 task for $149
-                </Text>
+                {rate !== null ? (
+                  <Text
+                    style={[
+                      styles.currentBalance,
+                      { fontSize: 12, color: "#c8c8c8" },
+                    ]}
+                  >
+                    {" "}
+                    Completed {achivmentsTasks} task for $
+                    {(achivmentsEarn / rate).toFixed(2)}
+                  </Text>
+                ) : (
+                  <Text> Loading...</Text>
+                )}
               </View>
             </View>
           </TouchableOpacity>
@@ -368,7 +341,7 @@ export default function IndexScreen() {
                       <Text style={styles.transactionItemTextAwaiting}>
                         Awaiting
                       </Text>
-                    ) : item.Status === "Accepted" ? (
+                    ) : item.Status === "Active" ? (
                       <Text style={styles.transactionItemTextAccepted}>
                         Accepted
                       </Text>

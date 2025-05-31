@@ -174,13 +174,18 @@ export const getExpectedAmount = async (req, res) => {
 
     if (user) {
       const wallet = user.walletAddress;
-      let challenges = await Challenge.find({ recepient: wallet });
+      let challenges = await Challenge.find({
+        recepient: wallet,
+        ChallengeStatus: "Awaiting" || "Active",
+      });
       let amount = 0;
+      let amountTasks = 0;
       challenges.forEach((challenge) => {
-        amount += challenge.bet
-      })
+        amount += challenge.bet;
+        amountTasks += 1;
+      });
 
-      return res.status(200).json({amount});
+      return res.status(200).json({ amount, amountTasks });
     }
   } catch (error) {
     console.error("Error updating challenge status:", error);
