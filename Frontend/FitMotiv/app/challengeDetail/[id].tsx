@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   Modal,
 } from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { styles as styles } from "../../src/Styles/challengesDetail-ID";
 import { ClockIcon } from "@/src/Icons/challengeDetailIcons";
 import { RecipientIcon } from "@/src/Icons/WalletIcons";
@@ -18,7 +18,7 @@ import {
 } from "@/src/Icons/challengeDetailIcons";
 import { Button, ProgressBar } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getUserToken } from "@/context/authContext/getUserToken";
 import { fetchUsdtToEthRate } from "@/context/getPrice/getETHPrice";
 
@@ -35,6 +35,7 @@ type Exercise = {
     exerciseType: string;
     exerciseTitle: string;
     progression: number;
+    repetitions: number;
   }[];
 };
 
@@ -65,7 +66,7 @@ export default function ChallengeDetailScreen() {
         pathname: "/exercise/[id]",
         params: {
           id: selectedExercise.id.toString(),
-          challenge_id: id 
+          challenge_id: id,
         },
       });
     }
@@ -94,6 +95,32 @@ export default function ChallengeDetailScreen() {
     }
 
     fetchChallengeData();
+  };
+
+  const getFormattedProgress = (progression: any, repetitions: any) => {
+    const numProgression = Number(progression);
+    const numRepetitions = Number(repetitions);
+
+    let progressBarValue = 0;
+    let percentageText = "0%";
+
+    if (
+      !isNaN(numProgression) &&
+      !isNaN(numRepetitions) &&
+      numRepetitions !== 0
+    ) {
+      let rawProgress = numProgression / numRepetitions;
+
+      progressBarValue = Math.max(0, Math.min(1, rawProgress));
+
+      const percentage = rawProgress * 100;
+      percentageText = `${percentage.toFixed(0)}%`;
+    }
+
+    return {
+      progressBarValue,
+      percentageText,
+    };
   };
 
   const handleExit = () => {
@@ -136,14 +163,16 @@ export default function ChallengeDetailScreen() {
     setLoading(false);
   };
 
-  useEffect(() => {
-    if (id) {
-      fetchChallengeData();
-      getRate();
-    } else {
-      console.log("ID is missing or falsy");
-    }
-  }, [id]);
+  useFocusEffect(
+    useCallback(() => {
+      if (id) {
+        fetchChallengeData();
+        getRate();
+      } else {
+        console.log("ID is missing or falsy");
+      }
+    }, [id])
+  );
 
   useEffect(() => {
     if (exercise?.ChallengeStatus === "Completed") {
@@ -188,8 +217,14 @@ export default function ChallengeDetailScreen() {
       exerciseType: string;
       exerciseTitle: string;
       progression: number;
+      repetitions: number;
     };
   }) => {
+    const { progressBarValue, percentageText } = getFormattedProgress(
+      item.progression,
+      item.repetitions
+    );
+
     return (
       <TouchableOpacity
         onPress={() => handleSelected(item.id, item.exerciseType)}
@@ -224,10 +259,10 @@ export default function ChallengeDetailScreen() {
             }}
           >
             <Text style={styles.ExerciseTitle}>{item.exerciseTitle}</Text>
-            <Text style={styles.procent}>{item.progression}%</Text>
+            <Text style={styles.procent}>{percentageText}</Text>
           </View>
           <ProgressBar
-            progress={item.progression / 100}
+            progress={progressBarValue}
             color="#9A5CEE"
             style={{
               height: 15,

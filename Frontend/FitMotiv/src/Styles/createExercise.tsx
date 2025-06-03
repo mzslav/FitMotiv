@@ -68,7 +68,7 @@ export const styles = StyleSheet.create({
     buttonWrapper: {
     width: '100%',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 10,
   },
   buttonGradient: {
     backgroundColor: "#9A5CEE",

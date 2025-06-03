@@ -2,6 +2,7 @@ body, html {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
+    overflow: hidden;
 }
 
 #root {
@@ -11,18 +12,28 @@ body, html {
     width: 100vw;
     height: 100vh;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .camera-container {
     position: relative;
     width: 100%;
-    height: 90vh;
+    height: calc(100vh - 80px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background-color: black;
 }
 
 .camera-video {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
 }
 
 #output_canvas {
@@ -31,7 +42,7 @@ body, html {
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; 
 }
 
 .permission-error {
@@ -44,6 +55,90 @@ body, html {
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 10;
+    width: 80%;
+    max-width: 300px;
+}
+
+.body-detection-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.85);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 15;
+}
+
+.body-icon {
+    font-size: 120px;
+    color: #7304E9;
+    margin-bottom: 20px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.body-instruction {
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+    max-width: 300px;
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+.body-instruction-sub {
+    color: #ccc;
+    font-size: 14px;
+    text-align: center;
+    max-width: 250px;
+    line-height: 1.3;
+    margin-bottom: 20px;
+}
+
+.detection-status {
+    color: #ebf1fc;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    padding: 10px 20px;
+    background-color: rgba(115, 4, 233, 0.2);
+    border-radius: 20px;
+    border: 1px solid #7304E9;
+    animation: statusPulse 1.5s infinite;
+}
+
+@keyframes statusPulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+.detection-status.success {
+    color: #4CAF50;
+    background-color: rgba(76, 175, 80, 0.2);
+    border-color: #4CAF50;
+    animation: none;
 }
 
 .buttonRow {
@@ -52,13 +147,20 @@ body, html {
     align-items: center;
     justify-content: center;
     gap: 20px;
-    margin-top: 10px;
+    margin-top: auto; 
+    padding-bottom: 10px;
+    padding-top: 10px;
+    width: 100%;
+    background-color: #121212;
+    box-sizing: border-box;
 }
 
 .toggle {
     position: relative;
-    display: inline-block;
-    width: 60px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    width: auto;
     height: 28px;
 }
 
@@ -69,12 +171,10 @@ body, html {
 }
 
 .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    position: relative;
+    display: block;
+    width: 60px;
+    height: 28px;
     background-color: #c8c8c8;
     transition: .4s;
     border-radius: 34px;
@@ -105,10 +205,10 @@ input:checked + .slider:before {
 }
 
 .toggleLabel {
-    position: absolute;
-    top: 50%;
-    right: 70px;
-    transform: translateY(-50%);
+    position: relative;
+    top: auto;
+    right: auto;
+    transform: none;
     color: white;
     font-size: 14px;
     white-space: nowrap;
@@ -126,4 +226,42 @@ input:checked + .slider:before {
 
 .buttonCameraSwitch:hover {
     background-color: #dadada;
+}
+
+.requestCameraBtn {
+    background: linear-gradient(-40deg, #CDA2FB, #6412DF);
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.3s;
+    margin-top: auto;
+    margin-bottom: 20px;
+}
+
+.requestCameraBtn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.exercise-container {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 9999;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.exercise-display-box {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }

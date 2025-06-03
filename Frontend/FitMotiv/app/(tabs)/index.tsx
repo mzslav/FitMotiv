@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import useAuth from "@/context/authContext/auth";
 import { useCallback, useEffect, useState } from "react";
 import { styles as styles } from "../../src/Styles/Index";
@@ -51,6 +51,19 @@ export default function IndexScreen() {
   const [AcceptedTransactions, setAcceptedTransactions] = useState<
     TransactionAccepted[]
   >([]);
+
+  useEffect(() => {
+    const get = async () => {
+      const wallet = await getWalletData();
+      if (wallet) {
+        const data = await getBalance(wallet.address);
+        setCurrentBalance(data);
+        setWalletExist(true);
+      }
+    };
+
+    get();
+  }, []);
 
   const fetchUserChallengesData = async () => {
     const token = await getUserToken();
@@ -128,25 +141,14 @@ export default function IndexScreen() {
     }
   }, [loading, user]);
 
-  useEffect(() => {
-    fetchUserChallengesData();
-    fetchExpectedAmount();
-    getRate();
-    setLoad(false);
-  }, []);
-
-  useEffect(() => {
-    const get = async () => {
-      const wallet = await getWalletData();
-      if (wallet) {
-        const data = await getBalance(wallet.address);
-        setCurrentBalance(data);
-        setWalletExist(true);
-      }
-    };
-
-    get();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserChallengesData();
+      fetchExpectedAmount();
+      getRate();
+      setLoad(false);
+    }, [])
+  );
 
   if (loading) {
     return <ActivityIndicator size="large" />;
@@ -324,7 +326,12 @@ export default function IndexScreen() {
                 <TouchableOpacity
                   key={item.id}
                   style={styles.transactionItem}
-                  onPress={() => console.log("Tapped", item.id)}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/challengeDetail/[id]",
+                      params: { id: item.id.toString() },
+                    })
+                  }
                 >
                   <View style={styles.transactionRow}>
                     <View style={styles.transactionRow}>
@@ -380,7 +387,12 @@ export default function IndexScreen() {
                 <TouchableOpacity
                   key={item.id}
                   style={styles.transactionItem}
-                  onPress={() => console.log("Tapped", item.id)}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/challengeDetail/[id]",
+                      params: { id: item.id.toString() },
+                    })
+                  }
                 >
                   <View style={styles.transactionRow}>
                     <View style={styles.transactionRow}>

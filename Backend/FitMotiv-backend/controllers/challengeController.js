@@ -3,8 +3,7 @@ import User from "../Models/User.js";
 
 export const createChallenge = async (req, res) => {
   try {
-    const { recepient, title, mode, exercises, duration, bet, message } =
-      req.body;
+    const { recepient, title, mode, exercises, duration, bet, message } = req.body;
 
     const uid = req.uid;
     let user = await User.findOne({ firebaseUid: uid });
@@ -38,12 +37,18 @@ export const createChallenge = async (req, res) => {
         });
       }
     }
+      
 
-    const exercisesWithProgression = exercises.map((ex) => ({
-      ...ex,
-      progression: 0,
-      exerciseTitle: `${ex.repetitions} ${ex.type}`,
-    }));
+    const exercisesWithProgression = exercises.map((ex) => {
+      const exerciseTitle = ex.type === 'plank' ? `${ex.repetitions} min of ${ex.type}` : `${ex.repetitions} ${ex.type}`;
+      const reps = ex.type === 'plank' ? ex.repetitions * 60 : ex.repetitions;
+      return {
+        ...ex,
+        repetitions: reps,
+        progression: 0,
+        exerciseTitle: exerciseTitle,
+      };
+    });
 
     const ChallengeStatus = "Awaiting";
 
@@ -123,6 +128,7 @@ export const getChallengeData = async (req, res) => {
         exerciseType: e.type || "unknown",
         exerciseTitle: e.exerciseTitle || "unknown",
         progression: e.progression,
+        repetitions: e.repetitions,
       })),
     };
 
@@ -176,7 +182,7 @@ export const getExpectedAmount = async (req, res) => {
       const wallet = user.walletAddress;
       let challenges = await Challenge.find({
         recepient: wallet,
-        ChallengeStatus: "Awaiting" || "Active",
+        ChallengeStatus: { $in: ["Awaiting", "Active"] },
       });
       let amount = 0;
       let amountTasks = 0;

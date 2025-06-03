@@ -20,6 +20,7 @@ import { auth } from "@/firebase/firebaseConfig";
 import { styles as styles } from "../src/Styles/createExercise";
 import { LinearGradient } from "expo-linear-gradient";
 import {
+  AiIcon,
   DurationIcon,
   ExerciseIcon,
   MoneyIcon,
@@ -33,6 +34,7 @@ import { TextInput } from "react-native-paper";
 import { RecepientIcon } from "@/src/Icons/createChallengeIcons";
 import { getBalance } from "@/Web3Module/getBalance";
 import { getWalletData } from "@/context/LocalData/getFromAsync";
+import { getAIAnswer } from "@/context/LLM/textGenerator";
 
 export default function CreateExerciseScreen() {
   const currentUser = auth.currentUser;
@@ -47,22 +49,28 @@ export default function CreateExerciseScreen() {
   const [duration, setDuration] = useState(new Date());
   const [inputValue, setInputValue] = useState<string>("");
 
-  const [challengeBet, setChallengeBet] = useState<string>('0');
-  const [currentUserBalance, setCurrentUserBalance] = useState<number>(0)
+  const [challengeBet, setChallengeBet] = useState<string>("0");
+  const [currentUserBalance, setCurrentUserBalance] = useState<number>(0);
   const [rate, setRate] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-
   const [message, setMessage] = useState<string>("");
-  const [selectedExercises, setSelectedExercises] = useState<{ [rowIndex: number]: number | null; }>({});
-  
-  const [repetitions, setRepetitions] = useState<{ [exerciseId: number]: string }>({});
-  const [modalVisible, setModalVisible] = useState(false);
-  const [currentExerciseId, setCurrentExerciseId] = useState<number | null>(null);
-  const [isPressed, setIsPressed] = useState(false);
-  const [mode, setMode] = useState<string>('per')
+  const [selectedExercises, setSelectedExercises] = useState<{
+    [rowIndex: number]: number | null;
+  }>({});
 
-  const [selectedTime, setSelectedTime] = useState<number>()
+  const [repetitions, setRepetitions] = useState<{
+    [exerciseId: number]: string;
+  }>({});
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentExerciseId, setCurrentExerciseId] = useState<number | null>(
+    null
+  );
+  const [isPressed, setIsPressed] = useState(false);
+  const [mode, setMode] = useState<string>("per");
+  const [generateIndex, setGenerateIndex] = useState<string>("");
+
+  const [selectedTime, setSelectedTime] = useState<number>();
 
   const [exercises, setExercises] = useState([
     { id: 1, type: "plank" },
@@ -75,35 +83,42 @@ export default function CreateExerciseScreen() {
     chunkedExercises.push(exercises.slice(i, i + 3));
   }
 
-  
   const fetchUsdtToEthRate = async () => {
     try {
-      const response = await fetch(
-        `${process.env.EXPO_PUBLIC_GET_RATE}`
-      );
+      const response = await fetch(`${process.env.EXPO_PUBLIC_GET_RATE}`);
       const data = await response.json();
       setRate(data.tether.eth);
     } catch (err) {
-      setError('Error getting rate');
+      setError("Error getting rate");
     }
   };
-  
+
+  const handleSetWallet = async () => {
+    const wallet = await getWalletData();
+
+    if (wallet) {
+      if (recepientAddress == wallet.address) {
+        setRecepientAddress("");
+      } else {
+        setRecepientAddress(wallet.address);
+      }
+    }
+  };
 
   const { user, loading } = useAuth();
-
 
   useEffect(() => {
     const getWallet = async () => {
       const wallet = await getWalletData();
 
       if (wallet) {
-        const data = await getBalance(wallet.address)
-        setCurrentUserBalance(+data)
+        const data = await getBalance(wallet.address);
+        setCurrentUserBalance(+data);
       }
-    }
+    };
 
-    getWallet()
-  }, [])
+    getWallet();
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -121,55 +136,58 @@ export default function CreateExerciseScreen() {
   }
 
   const onSendChallenge = async () => {
-  if (!isValidHEXAddress(recepientAddress)) {
-    Alert.alert("Error", "Invalid recepient address");
-    return;
-  }
+    if (!isValidHEXAddress(recepientAddress)) {
+      Alert.alert("Error", "Invalid recepient address");
+      return;
+    }
 
-  if (parseFloat(challengeBet) > currentUserBalance) {
-    Alert.alert("Error", "Challenge Bet must be <= your balance!");
-    return;
-  }
+    if (parseFloat(challengeBet) > currentUserBalance) {
+      Alert.alert("Error", "Challenge Bet must be <= your balance!");
+      return;
+    }
 
-  if (!title) {
-    Alert.alert("Error", "Invalid title");
-    return;
-  }
+    if (!title) {
+      Alert.alert("Error", "Invalid title");
+      return;
+    }
 
-  if (!duration) {
-    Alert.alert("Error", "Invalid duration");
-    return;
-  }
+    if (!duration) {
+      Alert.alert("Error", "Invalid duration");
+      return;
+    }
 
-  if (!challengeBet || isNaN(parseFloat(challengeBet))) {
-    Alert.alert("Error", "Invalid challengeBet");
-    return;
-  }
+    if (!challengeBet || isNaN(parseFloat(challengeBet))) {
+      Alert.alert("Error", "Invalid challengeBet");
+      return;
+    }
 
-  const formattedExercises = Object.entries(selectedExercises)
-    .filter(([rowIndex, exerciseId]) => exerciseId !== null && repetitions[exerciseId!])
-    .map(([rowIndex, exerciseId]) => {
-      const exercise = exercises.find(e => e.id === exerciseId!);
-      return {
-        type: exercise?.type,
-        repetitions: Number(repetitions[exerciseId!]),
-      };
-    });
+    const formattedExercises = Object.entries(selectedExercises)
+      .filter(
+        ([rowIndex, exerciseId]) =>
+          exerciseId !== null && repetitions[exerciseId!]
+      )
+      .map(([rowIndex, exerciseId]) => {
+        const exercise = exercises.find((e) => e.id === exerciseId!);
+        return {
+          type: exercise?.type,
+          repetitions: Number(repetitions[exerciseId!]),
+        };
+      });
 
-  if (formattedExercises.length === 0) {
-    Alert.alert("Error", "At least one exercise must be selected.");
-    return;
-  }
+    if (formattedExercises.length === 0) {
+      Alert.alert("Error", "At least one exercise must be selected.");
+      return;
+    }
 
-  const challengePayload = {
-    recepient: recepientAddress,
-    title,
-    mode: mode, 
-    exercises: formattedExercises,
-    duration: duration.getTime(),
-    bet: parseFloat(challengeBet),
-    message,
-  };
+    const challengePayload = {
+      recepient: recepientAddress,
+      title,
+      mode: mode,
+      exercises: formattedExercises,
+      duration: duration.getTime(),
+      bet: parseFloat(challengeBet),
+      message,
+    };
 
     if (!currentUser) {
       console.log("No user is signed in");
@@ -177,31 +195,32 @@ export default function CreateExerciseScreen() {
     }
     const token = await currentUser.getIdToken();
 
-  try {
-    const response = await fetch(`${process.env.EXPO_PUBLIC_SERVER_HOST}/challenge/create`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(challengePayload),
-    });
+    try {
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_SERVER_HOST}/challenge/create`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(challengePayload),
+        }
+      );
 
-    const result = await response.json();
+      const result = await response.json();
 
-    if (!response.ok) {
-      Alert.alert("Error", result.message || "Something went wrong");
-    } else {
-      Alert.alert("Success", "Challenge created successfully");
-      router.push('/(tabs)')
+      if (!response.ok) {
+        Alert.alert("Error", result.message || "Something went wrong");
+      } else {
+        Alert.alert("Success", "Challenge created successfully");
+        router.push("/(tabs)");
+      }
+    } catch (err) {
+      console.error("Challenge creation failed", err);
+      Alert.alert("Error", "Failed to create challenge");
     }
-  } catch (err) {
-    console.error("Challenge creation failed", err);
-    Alert.alert("Error", "Failed to create challenge");
-  }
-
-};
-
+  };
 
   const handlePress = (index: number, exerciseId: number) => {
     setIsPressed(!isPressed);
@@ -212,12 +231,12 @@ export default function CreateExerciseScreen() {
   };
 
   const handleRepetitionChange = (exerciseId: number, value: string) => {
-    setRepetitions(prevRepetitions => ({
+    setRepetitions((prevRepetitions) => ({
       ...prevRepetitions,
-      [exerciseId]: value
+      [exerciseId]: value,
     }));
   };
-  
+
   const openRepetitionsModal = (exerciseId: number, rowIndex: number) => {
     if (selectedExercises[rowIndex] === exerciseId) {
       setCurrentExerciseId(exerciseId);
@@ -235,25 +254,32 @@ export default function CreateExerciseScreen() {
   const handleAdd = () => {
     if (exercises.length < 9) {
       const nextId = exercises.length + 1;
-    const addExercises = [
-      { id: nextId, type: "plank" },
-      { id: nextId + 1, type: "squats" },
-      { id: nextId + 2, type: "push-ups" },
-    ];
-    setExercises((prevExercises) => [...prevExercises, ...addExercises]);
-    }else {
-      Alert.alert('Error', 'Maximum of exercises to choose')
+      const addExercises = [
+        { id: nextId, type: "plank" },
+        { id: nextId + 1, type: "squats" },
+        { id: nextId + 2, type: "push-ups" },
+      ];
+      setExercises((prevExercises) => [...prevExercises, ...addExercises]);
+    } else {
+      Alert.alert("Error", "Maximum of exercises to choose");
     }
-    
   };
 
   const handleSetDuration = (time: number, index: number) => {
     const newDate = new Date();
-    newDate.setHours(newDate.getHours() + time); 
+    newDate.setHours(newDate.getHours() + time);
     setDuration(newDate);
-    setSelectedTime(index)
-  }
-  
+    setSelectedTime(index);
+  };
+
+  const handleAIGenerate = async (inp: string) => {
+    const ans = await getAIAnswer(inp);
+    if (inp === "title") {
+      setTitle(ans);
+    } else {
+      setMessage(ans);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -263,8 +289,17 @@ export default function CreateExerciseScreen() {
             <RecepientIcon />
             <Text style={styles.label}>Recipient</Text>
           </View>
-          <View>
-            <TouchableOpacity style={styles.textInputBackround}>
+
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <TouchableOpacity
+              style={[styles.textInputBackround, { width: width * 0.55 }]}
+            >
               <TextInput
                 style={styles.textInput}
                 underlineColor="transparent"
@@ -275,6 +310,13 @@ export default function CreateExerciseScreen() {
                 onChangeText={(text) => setRecepientAddress(text)}
               />
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.durationBackround]}
+              onPress={handleSetWallet}
+            >
+              <Text style={styles.durationTitle}>Send To Yourself</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -284,27 +326,51 @@ export default function CreateExerciseScreen() {
             <Text style={styles.label}>Title</Text>
           </View>
           <View>
-            <TouchableOpacity style={styles.textInputBackround}>
-              <TextInput
-                style={styles.textInput}
-                underlineColor="transparent"
-                activeUnderlineColor="transparent"
-                textColor="white"
-                placeholder="You have to do..."
-                value={title}
-                onChangeText={(text) => setTitle(text)}
-              />
-            </TouchableOpacity>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <TouchableOpacity
+                style={[styles.textInputBackround, { width: width * 0.6 }]}
+              >
+                <TextInput
+                  style={styles.textInput}
+                  underlineColor="transparent"
+                  activeUnderlineColor="transparent"
+                  textColor="white"
+                  placeholder="You have to do..."
+                  value={title}
+                  onChangeText={(text) => setTitle(text)}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.durationBackround,
+                  { flexDirection: "row", alignItems: "center" },
+                ]}
+                onPress={() => handleAIGenerate("title")}
+              >
+                <AiIcon />
+                <Text style={[styles.durationTitle, { marginLeft: 5 }]}>
+                  Generate
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
         <View style={styles.inputContainer}>
           <View style={styles.buttonsRow}>
-            <TouchableOpacity 
-              style={mode === 'per' ? styles.DepositButton : styles.opacityButton} 
-              onPress={() => setMode('per')}
+            <TouchableOpacity
+              style={
+                mode === "per" ? styles.DepositButton : styles.opacityButton
+              }
+              onPress={() => setMode("per")}
             >
-              {mode === 'per' ? (
+              {mode === "per" ? (
                 <LinearGradient
                   colors={["#6412DF", "#CDA2FB"]}
                   start={{ x: 0, y: 0 }}
@@ -320,10 +386,12 @@ export default function CreateExerciseScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={mode === 'total' ? styles.DepositButton : styles.opacityButton}
-              onPress={() => setMode('total')}
+              style={
+                mode === "total" ? styles.DepositButton : styles.opacityButton
+              }
+              onPress={() => setMode("total")}
             >
-              {mode === 'total' ? (
+              {mode === "total" ? (
                 <LinearGradient
                   colors={["#6412DF", "#CDA2FB"]}
                   start={{ x: 0, y: 0 }}
@@ -331,7 +399,9 @@ export default function CreateExerciseScreen() {
                   locations={[0, 0.9]}
                   style={[styles.buttonGradient, { width: 146 }]}
                 >
-                  <Text style={styles.buttonGradientText}>Total To Complete</Text>
+                  <Text style={styles.buttonGradientText}>
+                    Total To Complete
+                  </Text>
                 </LinearGradient>
               ) : (
                 <Text style={styles.buttonGradientText}>Total To Complete</Text>
@@ -395,13 +465,16 @@ export default function CreateExerciseScreen() {
               ))}
 
               <View style={{ alignItems: "center" }}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.exerciseSquere}
-                  onPress={() => openRepetitionsModal(selectedExercises[index] || 0, index)}
+                  onPress={() =>
+                    openRepetitionsModal(selectedExercises[index] || 0, index)
+                  }
                 >
                   <Text style={{ color: "white", textAlign: "center" }}>
-                    {selectedExercises[index] && repetitions[selectedExercises[index]] 
-                      ? repetitions[selectedExercises[index]] 
+                    {selectedExercises[index] &&
+                    repetitions[selectedExercises[index]]
+                      ? repetitions[selectedExercises[index]]
                       : "Tap to select"}
                   </Text>
                 </TouchableOpacity>
@@ -429,42 +502,42 @@ export default function CreateExerciseScreen() {
           </View>
 
           <View style={styles.exercisesRow}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[
                 styles.durationBackround,
-                selectedTime === 0 && {backgroundColor: "#9A5CEE"}
+                selectedTime === 0 && { backgroundColor: "#9A5CEE" },
               ]}
-            onPress={() =>handleSetDuration(12,0)}
+              onPress={() => handleSetDuration(12, 0)}
             >
               <Text style={styles.durationTitle}>12h</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-            style={[
+            <TouchableOpacity
+              style={[
                 styles.durationBackround,
-                selectedTime === 1 && {backgroundColor: "#9A5CEE"}
+                selectedTime === 1 && { backgroundColor: "#9A5CEE" },
               ]}
-            onPress={() =>handleSetDuration(24,1)}
+              onPress={() => handleSetDuration(24, 1)}
             >
               <Text style={styles.durationTitle}>24h</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-            style={[
+            <TouchableOpacity
+              style={[
                 styles.durationBackround,
-                selectedTime === 2 && {backgroundColor: "#9A5CEE"}
+                selectedTime === 2 && { backgroundColor: "#9A5CEE" },
               ]}
-            onPress={() =>handleSetDuration(72,2)}
+              onPress={() => handleSetDuration(72, 2)}
             >
               <Text style={styles.durationTitle}>3 days</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-           style={[
+            <TouchableOpacity
+              style={[
                 styles.durationBackround,
-                selectedTime === 3 && {backgroundColor: "#9A5CEE"}
+                selectedTime === 3 && { backgroundColor: "#9A5CEE" },
               ]}
-            onPress={() =>handleSetDuration(168,3)}
+              onPress={() => handleSetDuration(168, 3)}
             >
               <Text style={styles.durationTitle}>7 days</Text>
             </TouchableOpacity>
@@ -484,7 +557,7 @@ export default function CreateExerciseScreen() {
                 style={styles.textInput}
                 underlineColor="transparent"
                 activeUnderlineColor="transparent"
-                placeholder="hours"
+                placeholder="90h"
                 textColor="white"
                 keyboardType="numeric"
                 value={inputValue}
@@ -492,7 +565,7 @@ export default function CreateExerciseScreen() {
                   setInputValue(text);
                   const parsed = parseInt(text, 10);
                   if (!isNaN(parsed)) {
-                    handleSetDuration(parsed,4);
+                    handleSetDuration(parsed, 4);
                   }
                 }}
               />
@@ -522,19 +595,19 @@ export default function CreateExerciseScreen() {
               />
             </TouchableOpacity>
             {rate !== null && (
-            <Text
-              style={[
-                styles.durationTitle,
-                { marginLeft: 15, color: "#747474" },
-              ]}
-            >
-              ≈${(parseFloat(challengeBet) / rate).toFixed(4)}
-            </Text>
+              <Text
+                style={[
+                  styles.durationTitle,
+                  { marginLeft: 15, color: "#747474" },
+                ]}
+              >
+                ≈${(parseFloat(challengeBet) / rate).toFixed(4)}
+              </Text>
             )}
           </View>
           <View style={styles.labelRow}>
             <Text style={[styles.durationTitle, { color: "#747474" }]}>
-              Current wallet balance 
+              Current wallet balance
             </Text>
             <Text style={styles.durationTitle}> {currentUserBalance} ETH</Text>
           </View>
@@ -553,17 +626,37 @@ export default function CreateExerciseScreen() {
               (Optional)
             </Text>
           </View>
-          <View>
-            <TouchableOpacity style={styles.textInputBackround}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <TouchableOpacity
+              style={[styles.textInputBackround, { width: width * 0.6 }]}
+            >
               <TextInput
                 style={styles.textInput}
                 underlineColor="transparent"
                 activeUnderlineColor="transparent"
                 textColor="white"
-                placeholder="Enter message for recipient"
+                placeholder="I swear you..."
                 value={message}
                 onChangeText={(text) => setMessage(text)}
               />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.durationBackround,
+                { flexDirection: "row", alignItems: "center" },
+              ]}
+              onPress={() => handleAIGenerate("message")}
+            >
+              <AiIcon />
+              <Text style={[styles.durationTitle, { marginLeft: 5 }]}>
+                Generate
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -588,7 +681,6 @@ export default function CreateExerciseScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-      
 
       <Modal
         animationType="slide"
@@ -596,31 +688,42 @@ export default function CreateExerciseScreen() {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "rgba(0, 0, 0, 0.5)"
-        }}>
-          <View style={{
-            backgroundColor: "#1e1e1e",
-            borderRadius: 10,
-            padding: 20,
-            width: width * 0.8,
-            maxHeight: height * 0.7
-          }}>
-            <Text style={{ color: "white", fontSize: 18, textAlign: "center", marginBottom: 15 }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#1e1e1e",
+              borderRadius: 10,
+              padding: 20,
+              width: width * 0.8,
+              maxHeight: height * 0.7,
+            }}
+          >
+            <Text
+              style={{
+                color: "white",
+                fontSize: 18,
+                textAlign: "center",
+                marginBottom: 15,
+              }}
+            >
               Select Repetitions
             </Text>
             <ScrollView>
-              {Array.from({ length: 50 }, (_, i) => i + 1).map((num) => (
+              {Array.from({ length: 100 }, (_, i) => i + 1).map((num) => (
                 <TouchableOpacity
                   key={num}
                   style={{
                     padding: 15,
                     borderBottomWidth: 1,
                     borderBottomColor: "#333",
-                    alignItems: "center"
+                    alignItems: "center",
                   }}
                   onPress={() => selectRepetition(num.toString())}
                 >
@@ -633,11 +736,13 @@ export default function CreateExerciseScreen() {
                 marginTop: 15,
                 padding: 10,
                 borderRadius: 25,
-                backgroundColor: "#9A5CEE"
+                backgroundColor: "#9A5CEE",
               }}
               onPress={() => setModalVisible(false)}
             >
-              <Text style={{ color: "white", textAlign: "center" }}>Cancel</Text>
+              <Text style={{ color: "white", textAlign: "center" }}>
+                Cancel
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

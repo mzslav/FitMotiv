@@ -24,21 +24,21 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 10,
+    padding: 5,
     backgroundColor: "#1E1E1E",
     borderRadius: 15,
     marginBottom: 20,
-    
+    width: width * 0.9,
   },
-  exersiceTitle:{
+  exersiceTitle: {
     color: "white",
     fontSize: 20,
     fontWeight: 700,
     fontFamily: "inter",
   },
-  exersicePriceBackround:{
+  exersicePriceBackround: {
     backgroundColor: "#2BC4AD",
-    alignSelf: "flex-start", 
+    alignSelf: "flex-start",
     borderRadius: 15,
     paddingHorizontal: 15,
     paddingVertical: 5,
@@ -48,13 +48,12 @@ export const styles = StyleSheet.create({
     borderRadius: 15,
     paddingHorizontal: 15,
     paddingVertical: 5,
-    marginRight: 20
+    marginRight: 20,
   },
   TotalText: {
     fontSize: 14,
     color: "white",
     fontWeight: 700,
     fontFamily: "inter",
-    
-  }
+  },
 });

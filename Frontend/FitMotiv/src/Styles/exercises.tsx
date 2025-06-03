@@ -9,20 +9,8 @@ export const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center"
   },
-  timeContainer: {
-    marginTop: 40,
-    marginBottom: 10,
-    alignSelf: "stretch"
-  },
-  timeLeft: {
-    fontWeight: 700,
-    fontSize: 14,
-    color: "white",
-    alignSelf: "flex-end",
-    paddingHorizontal: 20,
-  },
   buttonWrapper: {
-    width: "100%",
+    width: "50%",
     alignItems: "center",
     paddingBottom: 5,
     paddingTop: 5,
@@ -30,7 +18,7 @@ export const styles = StyleSheet.create({
   buttonGradient: {
     backgroundColor: "#9A5CEE",
     height: height * 0.06,
-    width: width * 0.8,
+    width: width * 0.4,
     justifyContent: "center",
     alignItems: "center",
     flexDirection: "row",
@@ -87,8 +75,26 @@ export const styles = StyleSheet.create({
   },
   webViewContainer: {
     width: width * 0.9,
-    height: height * 0.75
+    height: height * 0.75,
+    marginTop: height * 0.05,
   },
-  
-  
+  buttonRow: {
+    flexDirection: "row",
+  },
+  opacityButton: {
+    backgroundColor: "#121212",
+    height: height * 0.06,
+    width: width * 0.4,
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    borderRadius: 25,
+    borderColor: "#C8C8C8",
+    borderWidth: 1,
+  },
+  titleExercise: {
+    color: "#C8C8C8",
+    fontSize: 16,
+    fontWeight: 700,
+  }
 })
