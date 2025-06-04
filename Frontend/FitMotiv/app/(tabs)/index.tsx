@@ -19,6 +19,8 @@ import { fetchUsdtToEthRate } from "@/context/getPrice/getETHPrice";
 import { getWalletData } from "../../context/LocalData/getFromAsync";
 import { getBalance } from "@/Web3Module/getBalance";
 import { getUserToken } from "@/context/authContext/getUserToken";
+import { getOnBoardingStatus } from '../../context/LocalData/onBoarding'
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type TransactionCreated = {
   id: string;
@@ -54,6 +56,8 @@ export default function IndexScreen() {
 
   useEffect(() => {
     const get = async () => {
+      await AsyncStorage.removeItem('OnBoarding')
+      // await getOnBoardingStatus()
       const wallet = await getWalletData();
       if (wallet) {
         const data = await getBalance(wallet.address);
