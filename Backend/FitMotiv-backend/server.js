@@ -6,6 +6,7 @@ import logRouter from './routes/logRouters.js'
 import exerciseRouter from './routes/exerciseRouters.js'
 import cors from 'cors'
 const app = express();
+const port = process.env.PORT || 3000
 
 app.use(cors({
   origin: "http://localhost:8081",
@@ -25,5 +26,5 @@ app.use('/challenge', challengeRouter)
 app.use('/log', logRouter)
 app.use('/exercise', exerciseRouter)
 
-app.listen(3000)
+app.listen(port)
 
