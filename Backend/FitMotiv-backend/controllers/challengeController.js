@@ -114,7 +114,19 @@ export const getChallengeData = async (req, res) => {
 
   let challenge = await Challenge.findOne({ _id: exercise_id });
 
+
+
   if (challenge) {
+
+      const allComleted = challenge.exercises.every(element => 
+      element.progression >= element.repetitions
+    );
+
+    if (allComleted) {
+      challenge.ChallengeStatus = 'Completed'
+      await challenge.save(); 
+    }
+
     const data = {
       id: challenge._id,
       title: challenge.title,

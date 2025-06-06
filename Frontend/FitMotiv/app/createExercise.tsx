@@ -9,6 +9,7 @@ import {
   Alert,
   ScrollView,
   Modal,
+  GestureResponderEvent,
 } from "react-native";
 import { Link, router } from "expo-router";
 import { Image } from "expo-image";
@@ -71,6 +72,9 @@ export default function CreateExerciseScreen() {
   const [generateIndex, setGenerateIndex] = useState<string>("");
 
   const [selectedTime, setSelectedTime] = useState<number>();
+
+  const [color, setColor] = useState<string>("white");
+  const [buttonIndex, setButtonIndex] = useState<boolean>(true);
 
   const [exercises, setExercises] = useState([
     { id: 1, type: "plank" },
@@ -273,12 +277,31 @@ export default function CreateExerciseScreen() {
   };
 
   const handleAIGenerate = async (inp: string) => {
+    if (inp === "title") {
+      setButtonIndex(true);
+    } else {
+      setButtonIndex(false);
+    }
+
+    const colors = ["#B687FF", "#9A5CEE", "#7A3BBF", "#5C2E9A", "#3D1E66"];
+    let colorIndex = 0;
+    setColor(colors[colorIndex]);
+
+    const intervalId = setInterval(() => {
+      colorIndex = (colorIndex + 1) % colors.length;
+      setColor(colors[colorIndex]);
+    }, 100);
+
     const ans = await getAIAnswer(inp);
+
+    clearInterval(intervalId);
+
     if (inp === "title") {
       setTitle(ans);
     } else {
       setMessage(ans);
     }
+    setColor("white");
   };
 
   return (
@@ -353,8 +376,13 @@ export default function CreateExerciseScreen() {
                 ]}
                 onPress={() => handleAIGenerate("title")}
               >
-                <AiIcon />
-                <Text style={[styles.durationTitle, { marginLeft: 5 }]}>
+                <AiIcon color={buttonIndex ? color : "white"} />
+                <Text
+                  style={[
+                    styles.durationTitle,
+                    { marginLeft: 5, color: buttonIndex ? color : "white" },
+                  ]}
+                >
                   Generate
                 </Text>
               </TouchableOpacity>
@@ -376,7 +404,7 @@ export default function CreateExerciseScreen() {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   locations={[0, 0.9]}
-                  style={[styles.buttonGradient, { width: 146 }]}
+                  style={[styles.buttonGradient, { width: width * 0.4 }]}
                 >
                   <Text style={styles.buttonGradientText}>Per Day</Text>
                 </LinearGradient>
@@ -397,7 +425,7 @@ export default function CreateExerciseScreen() {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   locations={[0, 0.9]}
-                  style={[styles.buttonGradient, { width: 146 }]}
+                  style={[styles.buttonGradient, { width: width * 0.4 }]}
                 >
                   <Text style={styles.buttonGradientText}>
                     Total To Complete
@@ -653,8 +681,13 @@ export default function CreateExerciseScreen() {
               ]}
               onPress={() => handleAIGenerate("message")}
             >
-              <AiIcon />
-              <Text style={[styles.durationTitle, { marginLeft: 5 }]}>
+              <AiIcon color={!buttonIndex ? color : "white"} />
+              <Text
+                style={[
+                  styles.durationTitle,
+                  { marginLeft: 5, color: !buttonIndex ? color : "white" },
+                ]}
+              >
                 Generate
               </Text>
             </TouchableOpacity>

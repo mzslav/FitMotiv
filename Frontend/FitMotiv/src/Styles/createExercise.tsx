@@ -45,14 +45,13 @@ export const styles = StyleSheet.create({
     borderRadius: 25,
     borderColor: "#C8C8C8",
     borderWidth: 1,
-    marginLeft: 10,
+
   },
   buttonsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between', 
     alignItems: 'center',
-    paddingTop: 15,
-
+    paddingTop: 5,
   },
   DepositButton: {
     overflow: "hidden",
@@ -62,7 +61,6 @@ export const styles = StyleSheet.create({
     elevation: 6,
     width: 146, 
     height: 50, 
-    marginRight: 10, 
     borderRadius: 25,
   },
     buttonWrapper: {
