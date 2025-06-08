@@ -76,6 +76,8 @@ export default function CreateExerciseScreen() {
   const [color, setColor] = useState<string>("white");
   const [buttonIndex, setButtonIndex] = useState<boolean>(true);
 
+  const [incorrectInputIndex, setIncorrectInputIndex] = useState<number>()
+
   const [exercises, setExercises] = useState([
     { id: 1, type: "plank" },
     { id: 2, type: "squats" },
@@ -141,27 +143,22 @@ export default function CreateExerciseScreen() {
 
   const onSendChallenge = async () => {
     if (!isValidHEXAddress(recepientAddress)) {
-      Alert.alert("Error", "Invalid recepient address");
+      setIncorrectInputIndex(0)
       return;
     }
 
     if (parseFloat(challengeBet) > currentUserBalance) {
-      Alert.alert("Error", "Challenge Bet must be <= your balance!");
+      setIncorrectInputIndex(5)
       return;
     }
 
     if (!title) {
-      Alert.alert("Error", "Invalid title");
+      setIncorrectInputIndex(1)
       return;
     }
 
     if (!duration) {
-      Alert.alert("Error", "Invalid duration");
-      return;
-    }
-
-    if (!challengeBet || isNaN(parseFloat(challengeBet))) {
-      Alert.alert("Error", "Invalid challengeBet");
+      setIncorrectInputIndex(3)
       return;
     }
 
@@ -179,7 +176,7 @@ export default function CreateExerciseScreen() {
       });
 
     if (formattedExercises.length === 0) {
-      Alert.alert("Error", "At least one exercise must be selected.");
+       setIncorrectInputIndex(6)
       return;
     }
 
@@ -321,7 +318,7 @@ export default function CreateExerciseScreen() {
             }}
           >
             <TouchableOpacity
-              style={[styles.textInputBackround, { width: width * 0.55 }]}
+              style={[styles.textInputBackround, { width: width * 0.55, borderColor: incorrectInputIndex == 0 ? '#D23538' : '#1e1e1e', borderWidth: 0.5 }]}
             >
               <TextInput
                 style={styles.textInput}
@@ -357,7 +354,7 @@ export default function CreateExerciseScreen() {
               }}
             >
               <TouchableOpacity
-                style={[styles.textInputBackround, { width: width * 0.6 }]}
+                style={[styles.textInputBackround, { width: width * 0.6,borderColor: incorrectInputIndex == 1 ? '#D23538' : '#1e1e1e', borderWidth: 0.5 }]}
               >
                 <TextInput
                   style={styles.textInput}
@@ -494,7 +491,7 @@ export default function CreateExerciseScreen() {
 
               <View style={{ alignItems: "center" }}>
                 <TouchableOpacity
-                  style={styles.exerciseSquere}
+                  style={[styles.exerciseSquere, {borderColor: incorrectInputIndex == 6 ? '#D23538' : '#1e1e1e', borderWidth: 0.5}]}
                   onPress={() =>
                     openRepetitionsModal(selectedExercises[index] || 0, index)
                   }
@@ -578,6 +575,7 @@ export default function CreateExerciseScreen() {
                   paddingVertical: 0,
                   height: 40,
                   width: 68,
+                  borderColor: incorrectInputIndex == 3 ? '#D23538' : '#1e1e1e', borderWidth: 0.5
                 },
               ]}
             >
@@ -609,7 +607,7 @@ export default function CreateExerciseScreen() {
 
           <View style={styles.labelRow}>
             <TouchableOpacity
-              style={[styles.textInputBackround, { width: width * 0.5 }]}
+              style={[styles.textInputBackround, { width: width * 0.5,borderColor: incorrectInputIndex == 5 ? '#D23538' : '#1e1e1e', borderWidth: 0.5 }]}
             >
               <TextInput
                 style={styles.textInput}
