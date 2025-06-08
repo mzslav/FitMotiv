@@ -1,4 +1,4 @@
-import 'react-native-get-random-values';
+import "react-native-get-random-values";
 import {
   Text,
   View,
@@ -69,7 +69,6 @@ export default function WalletScreen() {
   useEffect(() => {
     checkAdressData();
   }, [walletExist]);
-
 
   const fetchBalance = async () => {
     if (walletExist === "true" && address) {
@@ -204,8 +203,7 @@ export default function WalletScreen() {
     }
   };
 
-
-    const fetchUserTransactions = async () => {
+  const fetchUserTransactions = async () => {
     if (!currentUser) {
       console.log("No user is signed in");
       return;
@@ -224,7 +222,7 @@ export default function WalletScreen() {
     }
 
     const data = await response.json();
-    setTransactions(data)
+    setTransactions(data);
   };
 
   const saveWalletAddress = async () => {
