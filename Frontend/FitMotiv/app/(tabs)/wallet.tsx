@@ -70,17 +70,6 @@ export default function WalletScreen() {
     checkAdressData();
   }, [walletExist]);
 
-  const mockTransactions = [
-    { id: "1", type: "Withdraw", amount: 0.02 },
-    { id: "2", type: "Deposit", amount: 0.15 },
-    { id: "3", type: "Challenge Completed", amount: 1.0 },
-    { id: "4", type: "Challenge Created", amount: 0.1 },
-    { id: "5", type: "Deposit", amount: 0.95 },
-    { id: "6", type: "Challenge Completed", amount: 1.1 },
-    { id: "7", type: "Withdraw", amount: 0.002 },
-    { id: "8", type: "Deposit", amount: 0.0015 },
-    { id: "9", type: "Challenge Completed", amount: 10 },
-  ];
 
   const fetchBalance = async () => {
     if (walletExist === "true" && address) {
@@ -98,6 +87,7 @@ export default function WalletScreen() {
 
     await fetchBalance();
     setRefreshing(false);
+    await fetchUserTransactions();
   };
 
   const getRate = async () => {
@@ -110,7 +100,7 @@ export default function WalletScreen() {
   };
 
   useEffect(() => {
-    setTransactions(mockTransactions);
+    fetchUserTransactions();
     getRate();
   }, []);
 
@@ -212,6 +202,29 @@ export default function WalletScreen() {
     } else {
       setWalletExist("false");
     }
+  };
+
+
+    const fetchUserTransactions = async () => {
+    if (!currentUser) {
+      console.log("No user is signed in");
+      return;
+    }
+    const token = await currentUser.getIdToken();
+
+    let response = await fetch(`${apiPort}/challenge/getTransactions`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      alert("HTTP Error " + response.status);
+    }
+
+    const data = await response.json();
+    setTransactions(data)
   };
 
   const saveWalletAddress = async () => {
@@ -636,7 +649,7 @@ export default function WalletScreen() {
                   {item.type == "Withdraw" ||
                   item.type == "Challenge Created" ? (
                     <Text style={styles.transactionItemTextNegative}>
-                      -{item.amount} ETH
+                      {item.amount} ETH
                     </Text>
                   ) : (
                     <Text style={styles.transactionItemTextPositive}>

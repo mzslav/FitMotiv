@@ -3,7 +3,8 @@ import User from "../Models/User.js";
 
 export const createChallenge = async (req, res) => {
   try {
-    const { recepient, title, mode, exercises, duration, bet, message } = req.body;
+    const { recepient, title, mode, exercises, duration, bet, message } =
+      req.body;
 
     const uid = req.uid;
     let user = await User.findOne({ firebaseUid: uid });
@@ -37,11 +38,13 @@ export const createChallenge = async (req, res) => {
         });
       }
     }
-      
 
     const exercisesWithProgression = exercises.map((ex) => {
-      const exerciseTitle = ex.type === 'plank' ? `${ex.repetitions} min of ${ex.type}` : `${ex.repetitions} ${ex.type}`;
-      const reps = ex.type === 'plank' ? ex.repetitions * 60 : ex.repetitions;
+      const exerciseTitle =
+        ex.type === "plank"
+          ? `${ex.repetitions} min of ${ex.type}`
+          : `${ex.repetitions} ${ex.type}`;
+      const reps = ex.type === "plank" ? ex.repetitions * 60 : ex.repetitions;
       return {
         ...ex,
         repetitions: reps,
@@ -65,6 +68,14 @@ export const createChallenge = async (req, res) => {
     });
 
     await newChallenge.save();
+
+    const transaction = {
+      amount: -bet,
+      type: "Challenge Created",
+    };
+
+    user.transactions.push(transaction);
+    await user.save();
 
     return res.status(201).json({
       message: "Challenge created successfully.",
@@ -113,18 +124,24 @@ export const getChallengeData = async (req, res) => {
   }
 
   let challenge = await Challenge.findOne({ _id: exercise_id });
-
-
+  let user = await User.findOne({ firebaseUid: uid });
 
   if (challenge) {
-
-      const allComleted = challenge.exercises.every(element => 
-      element.progression >= element.repetitions
+    const allComleted = challenge.exercises.every(
+      (element) => element.progression >= element.repetitions
     );
 
     if (allComleted) {
-      challenge.ChallengeStatus = 'Completed'
-      await challenge.save(); 
+      challenge.ChallengeStatus = "Completed";
+      await challenge.save();
+
+      const transaction = {
+        amount: challenge.bet,
+        type: "Challenge Completed",
+      };
+
+      user.transactions.push(transaction);
+      await user.save();
     }
 
     const data = {
@@ -208,5 +225,41 @@ export const getExpectedAmount = async (req, res) => {
   } catch (error) {
     console.error("Error updating challenge status:", error);
     return res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+export const sendUserTransactions = async (req, res) => {
+  const uid = req.uid;
+
+  if (!uid) {
+    return res.status(400).json({ message: "UID is required" });
+  }
+
+  try {
+    const user = await User.findOne({ firebaseUid: uid });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.walletAddress) {
+      return res.status(200).json({
+        message: "User wallet is not set",
+        address: null,
+      });
+    }
+
+    const formattedTransactions = (user.transactions || []).map(
+      (tx, index) => ({
+        id: tx._id,
+        type: tx.type,
+        amount: tx.amount,
+      })
+    );
+
+    return res.status(200).json(formattedTransactions);
+  } catch (err) {
+    console.error("Error fetching transactions:", err);
+    return res.status(500).json({ message: "Server error" });
   }
 };
