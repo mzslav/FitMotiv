@@ -5,6 +5,9 @@ import challengeRouter from './routes/challengeRouters.js'
 import logRouter from './routes/logRouters.js'
 import exerciseRouter from './routes/exerciseRouters.js'
 import cors from 'cors'
+import dotenv from 'dotenv';
+
+dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000
 

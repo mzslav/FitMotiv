@@ -36,6 +36,8 @@ import { RecepientIcon } from "@/src/Icons/createChallengeIcons";
 import { getBalance } from "@/Web3Module/getBalance";
 import { getWalletData } from "@/context/LocalData/getFromAsync";
 import { getAIAnswer } from "@/context/LLM/textGenerator";
+import { createChallenge } from '../Web3Module/contract/challegeHandler'
+import LoadingScreen from "@/context/LoadingBoard/Loading";
 
 export default function CreateExerciseScreen() {
   const currentUser = auth.currentUser;
@@ -69,7 +71,7 @@ export default function CreateExerciseScreen() {
   );
   const [isPressed, setIsPressed] = useState(false);
   const [mode, setMode] = useState<string>("per");
-  const [generateIndex, setGenerateIndex] = useState<string>("");
+  const [inProgress, setInProgress] = useState<boolean>(false)
 
   const [selectedTime, setSelectedTime] = useState<number>();
 
@@ -142,6 +144,8 @@ export default function CreateExerciseScreen() {
   }
 
   const onSendChallenge = async () => {
+    setInProgress(true)
+
     if (!isValidHEXAddress(recepientAddress)) {
       setIncorrectInputIndex(0)
       return;
@@ -210,10 +214,14 @@ export default function CreateExerciseScreen() {
       );
 
       const result = await response.json();
+      const challengeId = result.challenge._id;
 
-      if (!response.ok) {
+      const BlockchainResult =  await createChallenge(challengeId,recepientAddress,challengeBet);
+
+      if (!response.ok && !BlockchainResult) {
         Alert.alert("Error", result.message || "Something went wrong");
       } else {
+        setInProgress(false)
         Alert.alert("Success", "Challenge created successfully");
         router.push("/(tabs)");
       }
@@ -303,6 +311,7 @@ export default function CreateExerciseScreen() {
 
   return (
     <View style={styles.container}>
+      <LoadingScreen visible = {inProgress} />
       <ScrollView style={{ width: "100%" }}>
         <View style={styles.inputContainer}>
           <View style={styles.labelRow}>

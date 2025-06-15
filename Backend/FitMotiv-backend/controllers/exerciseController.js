@@ -75,26 +75,56 @@ export const saveExerciseProgress = async (req, res) => {
   }
 
   try {
-    let user = await User.findOne({ firebaseUid: uid });
+    const user = await User.findOne({ firebaseUid: uid });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    if (user) {
-      let challenge = await Challenge.findOne({ _id: challenge_id });
+    const challenge = await Challenge.findOne({ _id: challenge_id });
+    if (!challenge) {
+      return res.status(404).json({ message: "Challenge not found" });
+    }
 
-      const exercise = challenge.exercises.find((ex) => {
-        return ex._id == exercise_id;
+    const exercise = challenge.exercises.find((ex) => ex._id == exercise_id);
+    if (!exercise) {
+      return res.status(404).json({ message: "Exercise not found" });
+    }
+
+    exercise.progression = progressionValue;
+
+    const allCompleted = challenge.exercises.every(
+      (ex) => ex.progression >= ex.repetitions
+    );
+
+    let justCompleted = false;
+
+    const alreadyRewarded = user.transactions.some(
+      (t) => t.type === "Challenge Completed" && t.amount === challenge.bet
+    );
+
+    if (
+      allCompleted &&
+      challenge.ChallengeStatus !== "Completed" &&
+      !alreadyRewarded
+    ) {
+      challenge.ChallengeStatus = "Completed";
+      user.transactions.push({
+        amount: challenge.bet,
+        type: "Challenge Completed",
       });
 
-      if (!exercise) {
-        return res.status(404).json({ message: "Exercise not found" });
-      }
-      exercise.progression = progressionValue;
-
-      await challenge.save();
-
-      return res.status(200).json({ message: "Successfull save data" });
+      await user.save();
+      justCompleted = true;
     }
+
+    await challenge.save();
+
+    return res.status(200).json({
+      message: "Successfully saved data",
+      completed: allCompleted || justCompleted,
+    });
   } catch (error) {
-    console.error("Error getting CreatedChallenge:", error);
+    console.error("Error saving exercise progress:", error);
     return res.status(500).json({ message: "Internal server error." });
   }
 };

@@ -13,6 +13,8 @@ import {
 } from "@/src/Icons/challengeDetailIcons";
 import { WebView } from "react-native-webview";
 import { Camera } from "expo-camera";
+import { completeChallenge } from "@/Web3Module/contract/challegeHandler";
+import LoadingScreen from "@/context/LoadingBoard/Loading";
 
 export default function ExerciseScreen() {
   const { user, loading } = useAuth();
@@ -22,6 +24,7 @@ export default function ExerciseScreen() {
   const [exerciseTitle, setExerciseTitle] = useState<string>("");
   const [repetitions, setRepetitions] = useState<number>(0);
   const [mode, setMode] = useState<string>("");
+  const [inProgress, setInProgress] = useState<boolean>(false);
 
   const [hasCameraPermission, setHasCameraPermission] = useState<
     boolean | null
@@ -60,7 +63,9 @@ export default function ExerciseScreen() {
   };
 
   const hadnleSave = async () => {
+    setInProgress(true);
     await saveData();
+    setInProgress(false);
     router.back();
   };
 
@@ -81,6 +86,11 @@ export default function ExerciseScreen() {
       if (!response.ok) {
         alert("HTTP Error " + response.status);
         return;
+      }
+      const data = await response.json();
+
+      if (data.completed) {
+        await completeChallenge(challenge_id);
       }
     } catch (error) {
       console.error("Data save error:", error);
@@ -201,6 +211,7 @@ export default function ExerciseScreen() {
 
   return (
     <View style={styles.container}>
+      <LoadingScreen visible={inProgress} />
       <View style={styles.webViewContainer}>
         <WebView
           useWebKit
@@ -288,6 +299,15 @@ export default function ExerciseScreen() {
             style={styles.opacityButton}
           >
             <Text style={styles.buttonGradientText}>Go Back</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              setProgression(progression + 1);
+            }}
+            style={styles.opacityButton}
+          >
+            <Text style={styles.buttonGradientText}>ADdd</Text>
           </TouchableOpacity>
         </View>
         <View style={styles.buttonWrapper}>

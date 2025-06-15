@@ -21,6 +21,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useEffect, useState } from "react";
 import { getUserToken } from "@/context/authContext/getUserToken";
 import { fetchUsdtToEthRate } from "@/context/getPrice/getETHPrice";
+import { activateChallengeH } from "@/Web3Module/contract/challegeHandler";
 
 type Exercise = {
   id: string;
@@ -93,7 +94,7 @@ export default function ChallengeDetailScreen() {
       setLoading(false);
       return;
     }
-
+    await activateChallengeH(exercise_id)
     fetchChallengeData();
   };
 
@@ -175,7 +176,7 @@ export default function ChallengeDetailScreen() {
   );
 
   useEffect(() => {
-    if (exercise?.ChallengeStatus === "Completed") {
+    if (exercise?.ChallengeStatus === "Completed" || exercise?.ChallengeStatus === "Expired" ) {
       setStartButtonVisible(false);
     }
   }, [exercise?.ChallengeStatus]);

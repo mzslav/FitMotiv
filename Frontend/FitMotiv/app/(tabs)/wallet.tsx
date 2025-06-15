@@ -397,7 +397,7 @@ export default function WalletScreen() {
                 <BalanceIcon />
                 <Text style={styles.currentBalance}>Current balance</Text>
               </View>
-              <Text style={styles.balanceETH}>{balance} ETH</Text>
+              <Text style={styles.balanceETH}>{balance.slice(0,8)} ETH</Text>
               {rate !== null ? (
                 <Text style={styles.balanceUSD}>
                   ≈ ${(parseFloat(balance) / rate).toFixed(2)}
