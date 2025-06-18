@@ -83,8 +83,8 @@ If a user fails to complete a challenge, the funds may be forfeited.
 
 ---
 ### Testing & Demo
-You can quickly try the app using Expo Go on your mobile device:
-
+You can quickly try the app using Expo Go on Appetize: [click](https://appetize.io/app/b_5kjlb7koh5wko6bh3h72jhqg34?device=pixel4xl&osVersion=12.0&toolbar=true)
+or
 Install Expo Go from the App Store or Google Play.
 
 Scan the QR code below to open the app instantly(also [link](https://expo.dev/preview/update?message=Initial%20preview&updateRuntimeVersion=1.0.0&createdAt=2025-06-18T14%3A26%3A35.990Z&slug=exp&projectId=6ad7ebeb-419d-46a1-9ad8-5181039e0aa0&group=ed69fd96-06ce-4d2c-af06-2f8508f33c71))
