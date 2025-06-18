@@ -300,15 +300,6 @@ export default function ExerciseScreen() {
           >
             <Text style={styles.buttonGradientText}>Go Back</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => {
-              setProgression(progression + 1);
-            }}
-            style={styles.opacityButton}
-          >
-            <Text style={styles.buttonGradientText}>ADdd</Text>
-          </TouchableOpacity>
         </View>
         <View style={styles.buttonWrapper}>
           <TouchableOpacity style={styles.buttonContainer} onPress={hadnleSave}>

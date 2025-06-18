@@ -76,17 +76,15 @@ export default function WalletScreen() {
         const balance = await getBalance(address);
         setBalance(balance);
       } catch (error) {
-        console.error("Error while fetchBalance:", error);
       }
     }
   };
 
   const onRefresh = async () => {
     setRefreshing(true);
-
     await fetchBalance();
-    setRefreshing(false);
     await fetchUserTransactions();
+    setRefreshing(false);
   };
 
   const getRate = async () => {
@@ -99,8 +97,11 @@ export default function WalletScreen() {
   };
 
   useEffect(() => {
-    fetchUserTransactions();
-    getRate();
+    const initializeData = async () => {
+      await fetchUserTransactions();
+      await getRate();
+    };
+    initializeData();
   }, []);
 
   const checkAdressData = async () => {
@@ -115,7 +116,7 @@ export default function WalletScreen() {
           setWalletExist("true");
         } else if (walletExist == "onConfirm") {
         } else {
-          fetchWalletAddress();
+          await fetchWalletAddress();
         }
       } catch (e) {}
     }
@@ -134,7 +135,6 @@ export default function WalletScreen() {
       setMnemonic(wallet.mnemonic.phrase);
       setWalletExist("onConfirm");
     } catch (e) {
-      console.error("Error in handelCreateWallet:", e);
     } finally {
       setLoadingCreate(false);
     }
@@ -145,11 +145,8 @@ export default function WalletScreen() {
       const wallet = HDNodeWallet.fromPhrase(mnemonicPhrase.trim());
       setMnemonic(wallet.mnemonic?.phrase || "");
       await AsyncStorage.setItem("Seed-Phrase", mnemonicPhrase);
-      Alert.alert("Seed-Phrase saved to AsyncStorage");
       setWalletExist("true");
     } catch (e) {
-      console.error("Error logging in via seed phrase:", e);
-      alert("Invalid or incorrect seed phrase");
     }
   };
 
@@ -158,7 +155,6 @@ export default function WalletScreen() {
   };
 
   const onWithdraw = () => {
-    console.log("Try to withdraw!!");
   };
 
   const handleClose = () => {
@@ -175,74 +171,74 @@ export default function WalletScreen() {
 
   const fetchWalletAddress = async () => {
     if (!currentUser) {
-      console.log("No user is signed in");
       return;
     }
-    const token = await currentUser.getIdToken();
+    
+    try {
+      const token = await currentUser.getIdToken();
 
-    let response = await fetch(`${apiPort}/profile/getAddress`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+      let response = await fetch(`${apiPort}/profile/getAddress`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    if (!response.ok) {
-      alert("HTTP Error " + response.status);
-    }
-
-    const data = await response.json();
-    const addressData = data.address;
-    if (addressData !== null) {
-      await AsyncStorage.setItem("Wallet-Address", addressData);
-      setAddress(addressData);
-      setWalletExist("loggedIn");
-      Alert.alert("Address saved to AsyncStorage");
-    } else {
-      setWalletExist("false");
+      if (response.ok) {
+        const data = await response.json();
+        const addressData = data.address;
+        if (addressData !== null) {
+          await AsyncStorage.setItem("Wallet-Address", addressData);
+          setAddress(addressData);
+          setWalletExist("loggedIn");
+        } else {
+          setWalletExist("false");
+        }
+      }
+    } catch (error) {
     }
   };
 
   const fetchUserTransactions = async () => {
     if (!currentUser) {
-      console.log("No user is signed in");
       return;
     }
-    const token = await currentUser.getIdToken();
+    
+    try {
+      const token = await currentUser.getIdToken();
 
-    let response = await fetch(`${apiPort}/challenge/getTransactions`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+      let response = await fetch(`${apiPort}/challenge/getTransactions`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    if (!response.ok) {
-      alert("HTTP Error " + response.status);
+      if (response.ok) {
+        const data = await response.json();
+        setTransactions(data);
+      }
+    } catch (error) {
     }
-
-    const data = await response.json();
-    setTransactions(data);
   };
 
   const saveWalletAddress = async () => {
     if (!currentUser) {
-      console.log("No user is signed in");
       return;
     }
-    const token = await currentUser.getIdToken();
+    
+    try {
+      const token = await currentUser.getIdToken();
 
-    let response = await fetch(`${apiPort}/profile/createWallet`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ address: address }),
-    });
-
-    if (!response.ok) {
-      alert("HTTP Error " + response.status);
+      let response = await fetch(`${apiPort}/profile/createWallet`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ address: address }),
+      });
+    } catch (error) {
     }
   };
 
@@ -250,11 +246,9 @@ export default function WalletScreen() {
     try {
       await AsyncStorage.setItem("Seed-Phrase", mnemonic);
       await AsyncStorage.setItem("Wallet-Address", address);
-      saveWalletAddress();
+      await saveWalletAddress();
       setWalletExist("true");
-      Alert.alert("Seed-Phrase and Address saved to AsyncStorage");
     } catch (e) {
-      Alert.alert(`Error saving Seed-Phrase:, ${e}`);
     }
   };
 
@@ -640,7 +634,7 @@ export default function WalletScreen() {
               <TouchableOpacity
                 key={item.id}
                 style={styles.transactionItem}
-                onPress={() => console.log("Tapped", item.id)}
+                onPress={() => {}}
               >
                 <View style={styles.transactionRow}>
                   <Text style={styles.transactionItemText}>{item.type}</Text>

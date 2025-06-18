@@ -5,9 +5,9 @@ const { width, height } = Dimensions.get("window");
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: "#121212",
     justifyContent: "flex-start",
-    alignItems: "center"
+    alignItems: "center",
   },
   buttonWrapper: {
     width: "50%",
@@ -53,7 +53,7 @@ export const styles = StyleSheet.create({
     fontWeight: 700,
   },
 
-    backRoundIconExercise: {
+  backRoundIconExercise: {
     backgroundColor: "#1E1E1E",
     borderRadius: 15,
     width: 70,
@@ -96,5 +96,5 @@ export const styles = StyleSheet.create({
     color: "#C8C8C8",
     fontSize: 16,
     fontWeight: 700,
-  }
-})
+  },
+});

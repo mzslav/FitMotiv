@@ -115,63 +115,62 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-challengesRow: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginTop: 25,
-},
-tabItem: {
-  flex: 1,
-  alignItems: "center",
-},
-tabButton: {
-  width: '100%',
-  alignItems: "center",
-},
-isActiveSection: {
-  fontSize: 20,
-  fontWeight: 700,
-  color: "#9A5CEE",
-},
-isNoActiveSection: {
-  fontSize: 20,
-  fontWeight: 700,
-  color: "#747474",
-},
-activeLine: {
-  width: '90%', 
-  height: 2, 
-  backgroundColor: '#9A5CEE', 
-  borderRadius: 1,
-  marginTop: 5,
-},
-NoActiveLine: {
-  width: '90%', 
-  height: 2, 
-  backgroundColor: '#747474', 
-  borderRadius: 2,
-  marginTop: 5,
-},
+  challengesRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 25,
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+  tabButton: {
+    width: "100%",
+    alignItems: "center",
+  },
+  isActiveSection: {
+    fontSize: 20,
+    fontWeight: 700,
+    color: "#9A5CEE",
+  },
+  isNoActiveSection: {
+    fontSize: 20,
+    fontWeight: 700,
+    color: "#747474",
+  },
+  activeLine: {
+    width: "90%",
+    height: 2,
+    backgroundColor: "#9A5CEE",
+    borderRadius: 1,
+    marginTop: 5,
+  },
+  NoActiveLine: {
+    width: "90%",
+    height: 2,
+    backgroundColor: "#747474",
+    borderRadius: 2,
+    marginTop: 5,
+  },
 
-transactionsContainer: {
+  transactionsContainer: {
     marginTop: 10,
     width: width * 0.9,
-    backgroundColor: '#1e1e1e',
+    backgroundColor: "#1e1e1e",
     borderRadius: 15,
-    maxHeight: 150, 
-    
-  },  
+    maxHeight: 150,
+  },
   transactionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
   transactionItem: {
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'black',
+    borderBottomColor: "black",
     paddingHorizontal: 25,
   },
   transactionItemText: {
@@ -192,18 +191,17 @@ transactionsContainer: {
     fontSize: 14,
     fontFamily: "inter",
   },
-    transactionItemTextAccepted: {
+  transactionItemTextAccepted: {
     color: "#2BC4AD",
     fontWeight: 700,
     fontSize: 14,
     fontFamily: "inter",
   },
-    TotalText: {
+  TotalText: {
     fontSize: 14,
     color: "white",
     fontWeight: 700,
     fontFamily: "inter",
-    
   },
   totalContainer: {
     marginTop: 10,

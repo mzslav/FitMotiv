@@ -3,11 +3,11 @@ import { StyleSheet, Dimensions } from "react-native";
 const { width, height } = Dimensions.get("window");
 
 export const styles = StyleSheet.create({
-  container:{ 
+  container: {
     flex: 1,
-    backgroundColor: '#121212',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#121212",
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonGradient: {
     backgroundColor: "#9A5CEE",
@@ -36,39 +36,34 @@ export const styles = StyleSheet.create({
     elevation: 6,
     marginTop: 12,
   },
-  InfoText:{
+  InfoText: {
     marginHorizontal: 50,
     textAlign: "center",
     fontWeight: 700,
     fontFamily: "inter",
     color: "#747474",
     fontSize: 10,
-    
-    
   },
-  label:{
+  label: {
     color: "white",
     fontSize: 18,
     marginTop: 16,
     marginBottom: 5,
-    
   },
-  newAddress:{
+  newAddress: {
     color: "white",
     fontSize: 16,
     marginHorizontal: 20,
     textAlign: "center",
-
   },
   newAddressConteiner: {
     alignItems: "center",
-    backgroundColor: '#121212', 
+    backgroundColor: "#121212",
     padding: 8,
     borderRadius: 15,
     marginHorizontal: 10,
-  
   },
-  cryptoInfo:{
+  cryptoInfo: {
     width: width * 0.9,
     height: height * 0.5,
     backgroundColor: "#1E1E1E",
@@ -76,47 +71,46 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-start",
   },
-  
+
   balanceDisplay: {
     width: width * 0.9,
     height: height * 0.2,
     justifyContent: "center",
-    alignContent: "flex-start"
+    alignContent: "flex-start",
   },
 
-  containerGradient:{
+  containerGradient: {
     backgroundColor: "#9A5CEE",
     width: width * 0.9,
     height: height * 0.2,
-    alignItems: "flex-start", 
+    alignItems: "flex-start",
     flexDirection: "column",
     borderRadius: 20,
     position: "relative",
     paddingLeft: 30,
     paddingTop: 20,
   },
-  
+
   balanceETH: {
     color: "white",
     fontSize: 32,
-    fontWeight: "700", 
+    fontWeight: "700",
     paddingBottom: 5,
   },
   balanceUSD: {
     color: "#C8C8C8",
     fontSize: 16,
-    fontWeight: "700", 
-
+    fontWeight: "700",
   },
   currentBalance: {
     color: "white",
     fontSize: 16,
-    fontWeight: "700", 
+    fontWeight: "700",
     marginLeft: 5,
   },
   balanceHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingBottom: 12,
   },
   opacityButton: {
@@ -132,11 +126,10 @@ export const styles = StyleSheet.create({
     marginLeft: 10,
   },
   buttonsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between', 
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingTop: 15,
-
   },
   DepositButton: {
     overflow: "hidden",
@@ -144,9 +137,9 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 6,
-    width: 146, 
-    height: 50, 
-    marginRight: 10, 
+    width: 146,
+    height: 50,
+    marginRight: 10,
     borderRadius: 25,
   },
   historyContainer: {
@@ -156,21 +149,20 @@ export const styles = StyleSheet.create({
   },
   transactionsContainer: {
     width: width * 0.9,
-    backgroundColor: '#1e1e1e',
+    backgroundColor: "#1e1e1e",
     borderRadius: 15,
-    maxHeight: 300, 
-    
-  },  
+    maxHeight: 300,
+  },
   transactionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
   transactionItem: {
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'black',
+    borderBottomColor: "black",
     paddingHorizontal: 25,
   },
   transactionItemText: {
@@ -193,10 +185,9 @@ export const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.79)',
+    backgroundColor: "rgba(0, 0, 0, 0.79)",
     justifyContent: "flex-start",
-    alignItems: 'center',
-   
+    alignItems: "center",
   },
   modalText: {
     color: "white",
@@ -208,23 +199,22 @@ export const styles = StyleSheet.create({
     backgroundColor: "#9A5CEE",
     width: width * 0.9,
     height: height * 0.1,
-    alignItems: "center", 
+    alignItems: "center",
     borderRadius: 20,
     marginTop: 60,
     justifyContent: "center",
   },
   modalDataContainer: {
     width: width * 0.9,
-    backgroundColor: '#1e1e1e',
+    backgroundColor: "#1e1e1e",
     borderRadius: 15,
     height: 380,
     marginTop: 20,
     justifyContent: "flex-start",
     alignItems: "center",
-
-  },  
+  },
   titleRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     fontSize: 24,
   },
   titleText: {
@@ -233,5 +223,4 @@ export const styles = StyleSheet.create({
     marginLeft: 5,
     fontWeight: 700,
   },
-
 });

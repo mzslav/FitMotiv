@@ -6,30 +6,24 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
-import { Link, router } from "expo-router";
-import { Image } from "expo-image";
-import { Redirect } from "expo-router";
+import { router } from "expo-router";
 import useAuth from "@/context/authContext/auth";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "@/firebase/firebaseConfig";
-import { styles as styles } from "../src/Styles/Index";
+import { styles as prevStyles } from "../src/Styles/Index"; // Import previous styles
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getUserToken } from "@/context/authContext/getUserToken";
+import { LinearGradient } from "expo-linear-gradient"; // Import LinearGradient
 
 export default function SettingsScreen() {
   const { user, loading } = useAuth();
-
-  const [exerciseItems, setExerciseItems] = useState<number[]>([]);
-  const [nextId, setNextId] = useState(0);
-
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
 
   const handleLogout = async () => {
     await AsyncStorage.removeItem("Seed-Phrase");
     await AsyncStorage.removeItem("Wallet-Address");
     await signOut(auth);
   };
+
   useEffect(() => {
     if (!loading && !user) {
       router.replace("/auth/login");
@@ -44,24 +38,52 @@ export default function SettingsScreen() {
     return null;
   }
 
-  const handleToken = async () => {
-
-    const token = await getUserToken();
-
-    console.log(token);
-  };
-
-
   return (
-    <View style={styles.container}>
-      <View>
-        <TouchableOpacity onPress={handleToken} style={{ marginBottom: 20 }}>
-          <Text style={{ color: "white", fontSize: 20 }}> Get Token </Text>
-        </TouchableOpacity>
-      </View>
+    <View style={prevStyles.container}>
+      <TouchableOpacity onPress={handleLogout} style={customStyles.buttonContainer}>
+        <LinearGradient
+          colors={["white", "black"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          locations={[0, 0.9]}
+          style={customStyles.buttonGradient}
+        >
+          <Text style={customStyles.buttonText}>Log Out</Text>
+        </LinearGradient>
+      </TouchableOpacity>
 
-
-      <Button title="Log Out" onPress={handleLogout} />
+      <TouchableOpacity onPress={() => router.back()} style={customStyles.buttonContainer}>
+        <LinearGradient
+          colors={["#6412DF", "#CDA2FB"]} 
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          locations={[0, 0.9]}
+          style={customStyles.buttonGradient}
+        >
+          <Text style={customStyles.buttonText}>Go Back</Text>
+        </LinearGradient>
+      </TouchableOpacity>
     </View>
   );
 }
+
+const customStyles = StyleSheet.create({
+  buttonContainer: {
+    width: "80%", 
+    marginVertical: 10,
+    borderRadius: 25, 
+    overflow: "hidden", 
+  },
+  buttonGradient: {
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 25, 
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+});

@@ -10,7 +10,6 @@ export const getWalletData = async () => {
         if (address !== null && mnemonic !== null) {
          return { mnemonic, address };
         }else{
-            Alert.alert('Error', "Please connect wallet")
             router.push('../(tabs)/wallet')
         }
       } catch (e) {

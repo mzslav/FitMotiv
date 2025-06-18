@@ -21,7 +21,7 @@ import { getBalance } from "@/Web3Module/getBalance";
 import { getUserToken } from "@/context/authContext/getUserToken";
 import { getOnBoardingStatus } from '../../context/LocalData/onBoarding'
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import LoadingScreen from "@/context/LoadingBoard/Loading";
 
 type TransactionCreated = {
   id: string;
@@ -48,6 +48,7 @@ export default function IndexScreen() {
   const [achivmentsTasks, setAchivmentsTasks] = useState<number>(0);
   const [achivmentsEarn, setAchivmentsEarn] = useState<number>(0);
   const [newChallenges, setNewChallenges] = useState<number>(0);
+  const [loadInfo, setLoadInfo] = useState<boolean>(false)
   const [createdTransactions, setCreatedTransactions] = useState<
     TransactionCreated[]
   >([]);
@@ -56,23 +57,24 @@ export default function IndexScreen() {
   >([]);
 
   useEffect(() => {
-    const get = async () => {
-      await AsyncStorage.removeItem('OnBoarding')
-      // await getOnBoardingStatus()
-      const wallet = await getWalletData();
-      if (wallet) {
-        const data = await getBalance(wallet.address);
-        setCurrentBalance(data);
-        setWalletExist(true);
-      }
-    };
+    if (!loading && !user) {
+      router.replace("/auth/login");
+    }
+  }, [loading, user]);
 
-    get();
-  }, []);
+  const initializeWalletData = async () => {
+    const mnemonic = await AsyncStorage.getItem("Seed-Phrase");
+    const address = await AsyncStorage.getItem("Wallet-Address");
+    if (mnemonic && address) {
+      const data = await getBalance(address);
+      setCurrentBalance(data);
+      setWalletExist(true);
+    }
+  };
 
   const fetchUserChallengesData = async () => {
     const token = await getUserToken();
-
+    
     let response = await fetch(
       `${process.env.EXPO_PUBLIC_SERVER_HOST}/log/indexData`,
       {
@@ -84,9 +86,8 @@ export default function IndexScreen() {
     );
 
     if (!response.ok) {
-      alert("HTTP Error " + response.status);
       setLoad(false);
-      return [];
+      return;
     }
 
     const {
@@ -118,13 +119,11 @@ export default function IndexScreen() {
     );
 
     if (!response.ok) {
-      alert("HTTP Error " + response.status);
       setLoad(false);
-      return [];
+      return;
     }
 
     const RawData = await response.json();
-
     const amount = RawData.amount;
     const tasks = RawData.amountTasks;
     setExpectedMoney(amount);
@@ -140,36 +139,29 @@ export default function IndexScreen() {
     }
   };
 
+  const loadInitialData = async () => {
+    setLoadInfo(true);
+    await initializeWalletData();
+    await fetchUserChallengesData();
+    await fetchExpectedAmount();
+    await getRate();
+    setLoadInfo(false);
+  };
+
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace("/auth/login");
-    }
-  }, [loading, user]);
+    loadInitialData();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      fetchUserChallengesData();
-      fetchExpectedAmount();
-      getRate();
-      setLoad(false);
+      loadInitialData();
     }, [])
   );
-
-  if (loading) {
-    return <ActivityIndicator size="large" />;
-  }
 
   if (!user) {
     return null;
   }
 
-  if (load) {
-    return (
-      <View style={[styles.container, { justifyContent: "flex-start" }]}>
-        <ActivityIndicator size="large" />;
-      </View>
-    );
-  }
   const handleShowCreatedStats = () => {
     setShowStats(0);
   };
@@ -180,6 +172,7 @@ export default function IndexScreen() {
 
   return (
     <View style={[styles.container, { justifyContent: "flex-start" }]}>
+      <LoadingScreen visible={loadInfo}/>
       <View>
         <LinearGradient
           colors={["#6412DF", "#CDA2FB"]}

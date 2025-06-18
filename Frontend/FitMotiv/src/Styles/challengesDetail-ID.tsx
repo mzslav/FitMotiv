@@ -10,7 +10,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
   },
   contentContainer: {
-    width: '100%',
+    width: "100%",
     alignItems: "center",
   },
   contentText: {
@@ -94,9 +94,9 @@ export const styles = StyleSheet.create({
     fontWeight: 700,
   },
   buttonWrapper: {
-    width: '100%',
-    alignItems: 'center',
-    paddingBottom: 40, 
+    width: "100%",
+    alignItems: "center",
+    paddingBottom: 40,
   },
   buttonGradient: {
     backgroundColor: "#9A5CEE",

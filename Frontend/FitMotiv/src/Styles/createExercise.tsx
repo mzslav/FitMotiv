@@ -3,16 +3,16 @@ import { StyleSheet, Dimensions } from "react-native";
 const { width, height } = Dimensions.get("window");
 
 export const styles = StyleSheet.create({
-  container:{ 
+  container: {
     flex: 1,
-    backgroundColor: '#121212',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
+    backgroundColor: "#121212",
+    justifyContent: "flex-start",
+    alignItems: "flex-start",
   },
   labelRow: {
     flexDirection: "row",
     marginBottom: 5,
-    alignItems: "center"
+    alignItems: "center",
   },
   inputContainer: {
     width: "100%",
@@ -32,8 +32,8 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
   },
   textInput: {
-    backgroundColor: 'transparent', 
-    color: 'white' ,
+    backgroundColor: "transparent",
+    color: "white",
   },
   opacityButton: {
     backgroundColor: "#121212",
@@ -45,12 +45,11 @@ export const styles = StyleSheet.create({
     borderRadius: 25,
     borderColor: "#C8C8C8",
     borderWidth: 1,
-
   },
   buttonsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between', 
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingTop: 5,
   },
   DepositButton: {
@@ -59,13 +58,13 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 6,
-    width: 146, 
-    height: 50, 
+    width: 146,
+    height: 50,
     borderRadius: 25,
   },
-    buttonWrapper: {
-    width: '100%',
-    alignItems: 'center',
+  buttonWrapper: {
+    width: "100%",
+    alignItems: "center",
     marginTop: 10,
   },
   buttonGradient: {
@@ -95,8 +94,8 @@ export const styles = StyleSheet.create({
     elevation: 6,
   },
   exercisesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between', 
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 5,
   },
   exerciseSquereIsPressed: {
@@ -107,7 +106,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-    exerciseSquere: {
+  exerciseSquere: {
     backgroundColor: "#1e1e1e",
     width: 65,
     height: 65,
@@ -115,7 +114,6 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
 
   exerciseTitle: {
     fontSize: 12,
@@ -130,25 +128,61 @@ export const styles = StyleSheet.create({
     borderRadius: 15,
     justifyContent: "center",
     alignItems: "center",
-
   },
   durationTitle: {
     fontSize: 12,
     color: "white",
     fontWeight: 700,
   },
+
+  modalSendMenu: {
+    flexDirection: "column",
+    gap: 15,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 15,
+  },
+  modalTitelContainer: {},
+  containerGradientInfo: {
+    backgroundColor: "#9A5CEE",
+    width: width * 0.9,
+    height: height * 0.1,
+    alignItems: "center",
+    borderRadius: 20,
+    marginTop: 60,
+    justifyContent: "center",
+  },
+  modalText: {
+    color: "white",
+    fontWeight: 700,
+    fontSize: 24,
+    fontFamily: "inter",
+    textAlign: "center",
+  },
+  modalInfoContainer: {
+    width: width * 0.9,
+    height: height * 0.65,
+    borderRadius: 15,
+    backgroundColor: "#1E1E1E",
+  },
+  dataColumn: {
+    flexDirection: "column",
+    marginLeft: 20,
+    marginTop: 20,
+  },
+  titleRow: {
+    flexDirection: "row",
+  },
+  titleText: {
+    color: "#747474",
+    fontSize: 14,
+    fontWeight: 700,
+    marginLeft: 5,
+  },
+  text: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: 700,
+    marginTop: 5,
+  },
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-

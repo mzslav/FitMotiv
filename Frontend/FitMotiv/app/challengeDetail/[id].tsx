@@ -94,7 +94,7 @@ export default function ChallengeDetailScreen() {
       setLoading(false);
       return;
     }
-    await activateChallengeH(exercise_id)
+    await activateChallengeH(exercise_id);
     fetchChallengeData();
   };
 
@@ -176,7 +176,10 @@ export default function ChallengeDetailScreen() {
   );
 
   useEffect(() => {
-    if (exercise?.ChallengeStatus === "Completed" || exercise?.ChallengeStatus === "Expired" ) {
+    if (
+      exercise?.ChallengeStatus === "Completed" ||
+      exercise?.ChallengeStatus === "Expired"
+    ) {
       setStartButtonVisible(false);
     }
   }, [exercise?.ChallengeStatus]);

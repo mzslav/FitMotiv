@@ -75,7 +75,7 @@ export default function ChallengesScreen() {
     try {
       const rate = await fetchUsdtToEthRate();
       setRate(rate);
-    } catch (err) {}
+    } catch (err) { }
   };
 
   const onRefresh = useCallback(async () => {
@@ -185,10 +185,10 @@ export default function ChallengesScreen() {
                   item.ChallengeStatus === "Active"
                     ? {}
                     : item.ChallengeStatus === "Awaiting"
-                    ? { backgroundColor: "grey" }
-                    : item.ChallengeStatus === "Completed"
-                    ? { backgroundColor: "transparent" }
-                    : { backgroundColor: "black" },
+                      ? { backgroundColor: "grey" }
+                      : item.ChallengeStatus === "Completed"
+                        ? { backgroundColor: "transparent" }
+                        : { backgroundColor: "black" },
                 ]}
               >
                 <Text style={styles.exersiceTitle}>{item.ChallengeStatus}</Text>

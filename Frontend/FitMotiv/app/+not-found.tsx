@@ -27,4 +27,3 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
 });
-const AuthContext = React.createContext();

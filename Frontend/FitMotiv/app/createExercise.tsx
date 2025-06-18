@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Dimensions,
-  Alert,
   ScrollView,
   Modal,
   GestureResponderEvent,
@@ -24,6 +23,7 @@ import {
   AiIcon,
   DurationIcon,
   ExerciseIcon,
+  Gas,
   MoneyIcon,
   PlankIc,
   PushUpIc,
@@ -36,7 +36,7 @@ import { RecepientIcon } from "@/src/Icons/createChallengeIcons";
 import { getBalance } from "@/Web3Module/getBalance";
 import { getWalletData } from "@/context/LocalData/getFromAsync";
 import { getAIAnswer } from "@/context/LLM/textGenerator";
-import { createChallenge } from '../Web3Module/contract/challegeHandler'
+import { createChallenge } from "../Web3Module/contract/challegeHandler";
 import LoadingScreen from "@/context/LoadingBoard/Loading";
 
 export default function CreateExerciseScreen() {
@@ -58,9 +58,7 @@ export default function CreateExerciseScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const [message, setMessage] = useState<string>("");
-  const [selectedExercises, setSelectedExercises] = useState<{
-    [rowIndex: number]: number | null;
-  }>({});
+  const [selectedExercises, setSelectedExercises] = useState<{[rowIndex: number]: number | null;}>({});
 
   const [repetitions, setRepetitions] = useState<{
     [exerciseId: number]: string;
@@ -71,14 +69,15 @@ export default function CreateExerciseScreen() {
   );
   const [isPressed, setIsPressed] = useState(false);
   const [mode, setMode] = useState<string>("per");
-  const [inProgress, setInProgress] = useState<boolean>(false)
+  const [inProgress, setInProgress] = useState<boolean>(false);
 
-  const [selectedTime, setSelectedTime] = useState<number>();
+  const [selectedTime, setSelectedTime] = useState<number>(0);
 
   const [color, setColor] = useState<string>("white");
   const [buttonIndex, setButtonIndex] = useState<boolean>(true);
 
-  const [incorrectInputIndex, setIncorrectInputIndex] = useState<number>()
+  const [modalSendVisible, setModalSendVisible] = useState<boolean>(false);
+  const [incorrectInputIndex, setIncorrectInputIndex] = useState<number>();
 
   const [exercises, setExercises] = useState([
     { id: 1, type: "plank" },
@@ -113,6 +112,7 @@ export default function CreateExerciseScreen() {
     }
   };
 
+
   const { user, loading } = useAuth();
 
   useEffect(() => {
@@ -143,28 +143,9 @@ export default function CreateExerciseScreen() {
     return null;
   }
 
-  const onSendChallenge = async () => {
-    setInProgress(true)
-
-    if (!isValidHEXAddress(recepientAddress)) {
-      setIncorrectInputIndex(0)
-      return;
-    }
-
-    if (parseFloat(challengeBet) > currentUserBalance) {
-      setIncorrectInputIndex(5)
-      return;
-    }
-
-    if (!title) {
-      setIncorrectInputIndex(1)
-      return;
-    }
-
-    if (!duration) {
-      setIncorrectInputIndex(3)
-      return;
-    }
+  const sendConfirm = async () => {
+    setInProgress(true);
+    setModalSendVisible(false)
 
     const formattedExercises = Object.entries(selectedExercises)
       .filter(
@@ -179,12 +160,7 @@ export default function CreateExerciseScreen() {
         };
       });
 
-    if (formattedExercises.length === 0) {
-       setIncorrectInputIndex(6)
-      return;
-    }
-
-    const challengePayload = {
+      const challengePayload = {
       recepient: recepientAddress,
       title,
       mode: mode,
@@ -195,7 +171,6 @@ export default function CreateExerciseScreen() {
     };
 
     if (!currentUser) {
-      console.log("No user is signed in");
       return;
     }
     const token = await currentUser.getIdToken();
@@ -216,19 +191,61 @@ export default function CreateExerciseScreen() {
       const result = await response.json();
       const challengeId = result.challenge._id;
 
-      const BlockchainResult =  await createChallenge(challengeId,recepientAddress,challengeBet);
+      const BlockchainResult = await createChallenge(
+        challengeId,
+        recepientAddress,
+        challengeBet
+      );
 
       if (!response.ok && !BlockchainResult) {
-        Alert.alert("Error", result.message || "Something went wrong");
       } else {
-        setInProgress(false)
-        Alert.alert("Success", "Challenge created successfully");
+        setInProgress(false);
         router.push("/(tabs)");
       }
     } catch (err) {
-      console.error("Challenge creation failed", err);
-      Alert.alert("Error", "Failed to create challenge");
     }
+
+  }
+
+  const onSendChallenge = async () => {
+    if (!isValidHEXAddress(recepientAddress)) {
+      setIncorrectInputIndex(0);
+      return;
+    }
+
+    if (parseFloat(challengeBet) > currentUserBalance) {
+      setIncorrectInputIndex(5);
+      return;
+    }
+
+    if (!title) {
+      setIncorrectInputIndex(1);
+      return;
+    }
+
+    if (!duration) {
+      setIncorrectInputIndex(3);
+      return;
+    }
+
+    const formattedExercises = Object.entries(selectedExercises)
+      .filter(
+        ([rowIndex, exerciseId]) =>
+          exerciseId !== null && repetitions[exerciseId!]
+      )
+      .map(([rowIndex, exerciseId]) => {
+        const exercise = exercises.find((e) => e.id === exerciseId!);
+        return {
+          type: exercise?.type,
+          repetitions: Number(repetitions[exerciseId!]),
+        };
+      });
+
+    if (formattedExercises.length === 0) {
+      setIncorrectInputIndex(6);
+      return;
+    }
+    setModalSendVisible(true)
   };
 
   const handlePress = (index: number, exerciseId: number) => {
@@ -270,7 +287,6 @@ export default function CreateExerciseScreen() {
       ];
       setExercises((prevExercises) => [...prevExercises, ...addExercises]);
     } else {
-      Alert.alert("Error", "Maximum of exercises to choose");
     }
   };
 
@@ -311,7 +327,7 @@ export default function CreateExerciseScreen() {
 
   return (
     <View style={styles.container}>
-      <LoadingScreen visible = {inProgress} />
+      <LoadingScreen visible={inProgress} />
       <ScrollView style={{ width: "100%" }}>
         <View style={styles.inputContainer}>
           <View style={styles.labelRow}>
@@ -327,7 +343,14 @@ export default function CreateExerciseScreen() {
             }}
           >
             <TouchableOpacity
-              style={[styles.textInputBackround, { width: width * 0.55, borderColor: incorrectInputIndex == 0 ? '#D23538' : '#1e1e1e', borderWidth: 0.5 }]}
+              style={[
+                styles.textInputBackround,
+                {
+                  width: width * 0.55,
+                  borderColor: incorrectInputIndex == 0 ? "#D23538" : "#1e1e1e",
+                  borderWidth: 0.5,
+                },
+              ]}
             >
               <TextInput
                 style={styles.textInput}
@@ -363,7 +386,15 @@ export default function CreateExerciseScreen() {
               }}
             >
               <TouchableOpacity
-                style={[styles.textInputBackround, { width: width * 0.6,borderColor: incorrectInputIndex == 1 ? '#D23538' : '#1e1e1e', borderWidth: 0.5 }]}
+                style={[
+                  styles.textInputBackround,
+                  {
+                    width: width * 0.6,
+                    borderColor:
+                      incorrectInputIndex == 1 ? "#D23538" : "#1e1e1e",
+                    borderWidth: 0.5,
+                  },
+                ]}
               >
                 <TextInput
                   style={styles.textInput}
@@ -500,7 +531,14 @@ export default function CreateExerciseScreen() {
 
               <View style={{ alignItems: "center" }}>
                 <TouchableOpacity
-                  style={[styles.exerciseSquere, {borderColor: incorrectInputIndex == 6 ? '#D23538' : '#1e1e1e', borderWidth: 0.5}]}
+                  style={[
+                    styles.exerciseSquere,
+                    {
+                      borderColor:
+                        incorrectInputIndex == 6 ? "#D23538" : "#1e1e1e",
+                      borderWidth: 0.5,
+                    },
+                  ]}
                   onPress={() =>
                     openRepetitionsModal(selectedExercises[index] || 0, index)
                   }
@@ -584,7 +622,8 @@ export default function CreateExerciseScreen() {
                   paddingVertical: 0,
                   height: 40,
                   width: 68,
-                  borderColor: incorrectInputIndex == 3 ? '#D23538' : '#1e1e1e', borderWidth: 0.5
+                  borderColor: incorrectInputIndex == 3 ? "#D23538" : "#1e1e1e",
+                  borderWidth: 0.5,
                 },
               ]}
             >
@@ -616,7 +655,14 @@ export default function CreateExerciseScreen() {
 
           <View style={styles.labelRow}>
             <TouchableOpacity
-              style={[styles.textInputBackround, { width: width * 0.5,borderColor: incorrectInputIndex == 5 ? '#D23538' : '#1e1e1e', borderWidth: 0.5 }]}
+              style={[
+                styles.textInputBackround,
+                {
+                  width: width * 0.5,
+                  borderColor: incorrectInputIndex == 5 ? "#D23538" : "#1e1e1e",
+                  borderWidth: 0.5,
+                },
+              ]}
             >
               <TextInput
                 style={styles.textInput}
@@ -786,6 +832,124 @@ export default function CreateExerciseScreen() {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalSendVisible}
+        onRequestClose={() => {
+          setModalSendVisible(false);
+        }}
+      >
+        <View style={[styles.container,{backgroundColor: 'rgba(0, 0, 0, 0.8)', alignItems:"center"}]}>
+        <View style={styles.modalSendMenu}>
+          <View style={styles.modalTitelContainer}>
+            <LinearGradient
+              colors={["#6412DF", "#CDA2FB"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              locations={[0, 0.9]}
+              style={styles.containerGradientInfo}
+            >
+              <Text style={styles.modalText}>Confirm the creation of the challenge</Text>
+            </LinearGradient>
+          </View>
+
+          <View style={styles.modalInfoContainer}>
+
+          <View style = {styles.dataColumn}>
+            <View style = {styles.titleRow}>
+                <RecepientIcon color="#747474"/>
+                <Text style= {styles.titleText}>Recepient</Text>
+            </View>
+            <Text style = {styles.text}>{(recepientAddress).slice(0,25)}...</Text>
+          </View>
+
+          <View style = {styles.dataColumn}>
+            <View style = {styles.titleRow}>
+                <ExerciseIcon color="#747474"/>
+                <Text style= {styles.titleText}>Exercises</Text>
+            </View>
+            {Object.entries(selectedExercises).map(([rowIndex, exerciseId]) => (
+              <Text style={styles.text} key={rowIndex}>
+                Exercise number {+rowIndex + 1}: {exerciseId !== null ? exerciseId : 'None'}
+              </Text>
+            ))}    
+          </View>
+
+          <View style = {styles.dataColumn}>
+            <View style = {styles.titleRow}>
+                <DurationIcon color="#747474"/>
+                <Text style= {styles.titleText}>Duration</Text>
+            </View>
+            <Text style={styles.text}>{duration.toString()}</Text>
+          </View>
+
+          <View style = {styles.dataColumn}>
+            <View style = {styles.titleRow}>
+                <MoneyIcon color="#747474"/>
+                <Text style= {styles.titleText}>Challenge bet</Text>
+            </View>
+            {rate !== null && (
+            <Text style = {styles.text}>{challengeBet}  ≈${(parseFloat(challengeBet) / rate).toFixed(4)} </Text>
+            )} 
+          </View>
+
+          
+        <View style={[styles.dataColumn, { marginTop: 40 }]}>
+          <View style={styles.titleRow}>
+            <Gas color="#747474" />
+            <Text style={styles.titleText}>Gas fee</Text>
+          </View>
+            <Text style={styles.text}> ≈0.00000009 ETH</Text>
+        </View>
+
+        <View style={[styles.dataColumn, { marginTop: 20 }]}>
+          <View style={styles.titleRow}>
+            <Text style={[styles.titleText, {fontSize: 18, color: 'white'}]}>Total cost:</Text>
+          </View>
+            <Text style={[styles.text, {fontSize: 18}]}> ={(+challengeBet + 0.00000009).toFixed(8)}</Text>
+        </View>
+
+
+          </View>
+
+          <View style={[styles.buttonsRow, { paddingTop: 0,  gap: 20 }]}>
+            <TouchableOpacity
+              style={{
+                marginTop: 15,
+                paddingHorizontal: 40,
+                paddingVertical: 13, 
+                borderRadius: 25,
+                backgroundColor: "#1E1E1E",
+                borderWidth: 1,
+                borderColor: 'white',
+              }}
+              onPress={() => setModalSendVisible(false)}
+            >
+              <Text style={{ color: "white", textAlign: "center",fontWeight: 700 }}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                marginTop: 15,
+                paddingHorizontal: 60,
+                paddingVertical: 13, 
+                borderRadius: 25,
+                backgroundColor: "#9A5CEE",
+              }}
+              onPress={sendConfirm}
+            >
+              <Text style={{ color: "white", textAlign: "center",fontWeight: 700 }}>
+                Confirm
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
       </Modal>
     </View>
   );
