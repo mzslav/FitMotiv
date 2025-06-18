@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Camera App</title>
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="root">
+        <div class="exercise-container">
+            <div class="exercise-display-box" id="exerciseNameBox" style="display: none;">
+                Exercise: <span id="exerciseName"></span>
+            </div>
+            <div class="exercise-display-box" id="plankTimerBox" style="display: none;">
+                <span id="plankTimer"></span>
+            </div>
+        </div>
+
+        <div class="camera-container">
+            <div class="permission-error" id="permissionError" style="display: none;">
+                Camera access is denied. Please grant permission to configure devices.
+            </div>
+            
+            <div class="body-detection-overlay" id="bodyDetectionOverlay" style="display: flex;">
+                <div class="body-icon" id="bodyIcon"></div>
+                <div class="body-instruction">
+                    Position yourself so your entire body is visible in the frame
+                </div>
+                <div class="body-instruction-sub">
+                    Make sure your head and feet are both in view
+                </div>
+                <div class="detection-status" id="detectionStatus">
+                    Searching for full body...
+                </div>
+            </div>
+
+            <video
+                id="cameraVideo"
+                class="camera-video"
+                autoplay
+                playsinline
+                muted
+            ></video>
+
+            <canvas
+                id="output_canvas"
+                class="output-canvas"
+            ></canvas>
+        </div>
+
+        <button class="requestCameraBtn" id="requestCameraBtn">
+            📷 Allow Camera Access
+        </button>
+
+        <div class="buttonRow" id="cameraControls">
+            <label class="toggle">
+                <span class="toggleLabel" id="toggleLabel">Off</span> <input
+                    type="checkbox"
+                    id="cameraToggle"
+                />
+                <span class="slider"></span>
+            </label>
+
+            <button class="buttonCameraSwitch" id="switchCameraBtn">
+                Switch
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
